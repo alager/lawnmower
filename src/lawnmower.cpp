@@ -1,33 +1,36 @@
 #include "lawnmower.h"
+#include "d2a.h"
+#include "a2d.h"
+#include <unistd.h>	// for sleep()
 
-
-int main() {
+int main() 
+{
+	uint8_t buff[ 8 ] = { 0xaa, 0x23, 0x01, 0x03, 0x07, 0x0f, 0x1f, 0x3f };
 	// Create a file stream object
-	std::ofstream outfile("hello_world.txt");
+	// std::ofstream outfile("hello_world.txt");
 
 	// Write the string "hello world" to the file
-	outfile << "hello world4";
+	// outfile << "hello world4";
 
 	// Close the file stream object
-	outfile.close();
+	// outfile.close();
 
 	cout << "pre init" << endl;
 	if (gpioInitialise()<0) 
 		return 1;
 
 	cout << "post init" << endl;
-	gpioSetMode(HALL, PI_INPUT);
-	gpioSetPullUpDown(HALL, PI_PUD_UP);
+	
+	// int handle_ = spiOpen( 0, BAUD_32K, 0 );
+	// create a d2a object
+	d2a ad5754( SPI_CLK, SPI_MISO, SPI_MOSI, SPI_CS_D2A );
 
-	printf("GPIO14 is level %d\n", gpioRead(HALL));
-	gpioSetPullUpDown(HALL, PI_PUD_DOWN);
-	printf("GPIO14 is level %d\n", gpioRead(HALL));
+	cout << "writing to SPI " << sizeof( buff ) << " bytes" << endl;
+	ad5754.write( buff, sizeof( buff ) );
+	// spiWrite( ( unsigned int )handle_, (char *)buff, sizeof( buff ) );
 
 
-	//gpioSetAlertFunc(HALL, alert);
-
-	//sleep(secs);
-
+	// this is the end
 	gpioTerminate();
 	return 0;
 }

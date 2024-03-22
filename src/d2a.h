@@ -41,7 +41,7 @@ public:
 		gpioSetMode( miso_, PI_INPUT);
 		gpioSetMode( chipSelect_, PI_OUTPUT);
 
-		handle_ = spiOpen( 0, BAUD_32K, 0 );
+		handle_ = spiOpen( 0, BAUD_500K, 0 );
 		if( handle_ < 0 )
 			throw std::runtime_error( "failed to construct: SPI" );
 		printf("SPI Handle: %d\n", handle_);
@@ -54,7 +54,9 @@ public:
 		// spiClose( (unsigned int)handle_ );
 	}
 
-	int write( uint8_t * data, unsigned int );
+	int write( uint8_t * data, unsigned int count );
+	int read( uint8_t * data, unsigned int count );
+
 
 private:
 	unsigned int clock_;
