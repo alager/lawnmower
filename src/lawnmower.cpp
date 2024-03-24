@@ -5,7 +5,7 @@
 
 int main() 
 {
-	uint32_t buff = { 0xaabb1155 };
+	// uint32_t buff = { 0xaabb1155 };
 	// Create a file stream object
 	// std::ofstream outfile("hello_world.txt");
 
@@ -24,9 +24,11 @@ int main()
 	// int handle_ = spiOpen( 0, BAUD_32K, 0 );
 	// create a d2a object
 	d2a ad5754( SPI_LDAC );
+	int foo = ad5754.set( 'a', 25 );
+	cout << "set return: " << foo << endl;
 
-	cout << "writing to SPI " << sizeof( buff ) << " bytes" << endl;
-	cout << "write return: " << ad5754.write( buff ) << endl;
+	// cout << "writing to SPI " << sizeof( buff ) << " bytes" << endl;
+	// cout << "write return: " << ad5754.write( buff ) << endl;
 
 	// create a a2d object
 	// a2d ads8678( SPI_CLK, SPI_MISO, SPI_MOSI, SPI_CS_D2A );

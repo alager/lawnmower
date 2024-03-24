@@ -95,7 +95,7 @@ public:
 
 
 	// user API
-	int set( float percent );
+	int set( char dac, float percent );
 
 
 

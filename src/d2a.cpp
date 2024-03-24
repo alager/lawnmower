@@ -49,7 +49,7 @@ float d2a::percent2Voltage( float percent )
 // where:
 // D is the decimal equivalent of the code loaded to the DAC.
 // n is the bit resolution of the DAC.
-// VREFIN is the reference voltage applied at the REFIN pin.
+// VREFIN is the reference voltage 2.5V.
 // Gain is an internal gain the value of which depends on the
 // output range selected by the user as shown in Table 7.
 uint32_t d2a::voltage2reg( float voltage )
@@ -58,17 +58,30 @@ uint32_t d2a::voltage2reg( float voltage )
 
 	// Gain for 10.8V is 4.32
 	// n = 16 bits
-	// Vref = 5V
-	return 0;
+	// Vref = 2.5V
+	return (uint32_t)(( voltage * 65535.0f ) / ( 2.5f * 4.32f ));
 }
 
 
 // user level command to set the output between 0-100%
-int d2a::set( float percent )
+int d2a::set( char dac, float percent )
 {
+	uint32_t mydac = 0;
 	float voltage = percent2Voltage( percent );
 	uint32_t reg = voltage2reg( voltage );
-	write( reg );
-	return 0;
+
+	// cout << "DAC: " << dac << ", percent: " << percent << endl;
+	// cout << "voltage: " << voltage << ", reg: " <<  reg << endl;
+
+	if( dac == 'a' )
+		mydac = DAC_A;
+	else
+	if( dac == 'b' )
+		mydac = DAC_B;
+	else
+	if( dac == 'c' )
+		mydac = DAC_C;
+
+	return write( DAC_WRITE | REG_DAC_VALUE | mydac | reg );
 }
 
