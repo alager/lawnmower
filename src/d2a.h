@@ -72,8 +72,6 @@ public:
 		reg__ = DAC_WRITE |  REG_POWER_CTRL | DAC_NONE | 0x0017;
 		write( reg__ );
 		usleep( 10 );
-
-		
 	}
 
 	// Destructor

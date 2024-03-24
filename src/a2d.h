@@ -1,4 +1,7 @@
 #include <stdexcept>
+#include <iostream>
+using std::cout;
+using std::endl;
 #include <pigpio.h>
 
 #define BAUD_32K	( 32000 )
@@ -34,15 +37,10 @@ public:
 			throw std::runtime_error( "failed to construct: GPIOInit" );
 
 		// Configure the SPI pins
-		gpioSetMode( clock_, PI_OUTPUT);
-		gpioSetMode( mosi_, PI_OUTPUT);
-		gpioSetMode( miso_, PI_INPUT);
-		gpioSetMode( chipSelect_, PI_OUTPUT);
-
-		handle_ = spiOpen( 0, BAUD_500K, 0 );
+		handle_ = spiOpen( 0, BAUD_32K, 0 );
 		if( handle_ < 0 )
 			throw std::runtime_error( "failed to construct: SPI" );
-		printf("SPI Handle: %d\n", handle_);
+		cout << "a2d SPI Handle: " << handle_ << endl;
 
 	}
 
@@ -54,6 +52,8 @@ public:
 
 	int write( uint8_t * data, unsigned int count );
 	int read( uint8_t * data, unsigned int count );
+	int xfer( char *txBuf, char *rxBuf, unsigned count );
+
 
 private:
 	unsigned int clock_;
