@@ -62,11 +62,22 @@ uint32_t d2a::voltage2reg( float voltage )
 	return (uint32_t)(( voltage * 65535.0f ) / ( 2.5f * 4.32f ));
 }
 
+void d2a::ldacHigh( void )
+{
+	gpioWrite( ldac_, PI_HIGH );
+}
+void d2a::ldacLow( void )
+{
+	gpioWrite( ldac_, PI_LOW );
+}
+
 
 // user level command to set the output between 0-100%
 int d2a::set( char dac, float percent )
 {
 	uint32_t mydac = 0;
+
+	// ldacLow();
 	float voltage = percent2Voltage( percent );
 	uint32_t reg = voltage2reg( voltage );
 
@@ -82,6 +93,18 @@ int d2a::set( char dac, float percent )
 	if( dac == 'c' )
 		mydac = DAC_C;
 
-	return write( DAC_WRITE | REG_DAC_VALUE | mydac | reg );
+	// write the output value to the selected dac
+	int retVal = write( DAC_WRITE | REG_DAC_VALUE | mydac | reg );
+
+	if ( retVal == 3 )
+	{
+		// update the dac output buffer
+		return write ( DAC_WRITE | REG_CTRL | CTRL_REG_LOAD );
+	}
+	else
+	{
+		return retVal;
+	}
+	// ldacHigh();
 }
 

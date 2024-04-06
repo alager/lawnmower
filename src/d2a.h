@@ -35,7 +35,9 @@ using std::endl;
 #define RANGE_10_0			( 0x01 << 0 )
 #define RANGE_10_8			( 0x02 << 0 )
 
+#define CTRL_REG_LOAD		( 0x05 << 16 )
 
+#define ENABLE_10V_GPIO		( 27 )
 class d2a
 {
 public:
@@ -51,9 +53,15 @@ public:
 		if ( gpioInitialise() < 0 ) 
 			throw std::runtime_error( "failed to construct: GPIOInit" );
 
-		// Configure the SPI pins
+		// Configure the d2a control pins
 		gpioSetMode( ldac_, PI_OUTPUT);
 		gpioWrite( ldac_, PI_LOW );
+
+		// activate the 10V supply enable
+		// this only affects the first run after power up
+		// as the pin state stays high even after program exit
+		gpioSetMode( ENABLE_10V_GPIO, PI_OUTPUT);
+		gpioWrite( ENABLE_10V_GPIO, PI_HIGH );
 
 		// configure SPI
 		handle_ = spiOpen( 0, BAUD_500K, 0 );
@@ -72,6 +80,12 @@ public:
 		reg__ = DAC_WRITE |  REG_POWER_CTRL | DAC_NONE | 0x0017;
 		write( reg__ );
 		usleep( 10 );
+
+		// clear all the dac outputs to 0.
+		// the data 0x5555 is a don't care value
+		reg__ = 0;
+		reg__ = DAC_WRITE |  REG_CTRL | DAC_ALL | 0x5555;
+		write( reg__ );
 	}
 
 	// Destructor
@@ -92,6 +106,9 @@ public:
 
 	// voltage to d2a register value
 	uint32_t voltage2reg( float voltage );
+
+	void ldacHigh( void );
+	void ldacLow( void );
 
 
 	// user API
