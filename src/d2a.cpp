@@ -2,9 +2,9 @@
 #include <arpa/inet.h>
 #include "d2a.h"
 
-// a class for working with the d2a chip
+// a class for working with the D2a chip
 
-int d2a::write( uint32_t data )
+int D2a::write( uint32_t data )
 {
 	// flip endian for SPI chip required order
 	data = htonl( data << 8 );
@@ -17,13 +17,13 @@ int d2a::write( uint32_t data )
 }
 
 
-int d2a::read( uint8_t * buff )
+int D2a::read( uint8_t * buff )
 {
 	return spiRead( ( unsigned int )handle_, (char *)buff, 3 );
 }
 
 
-int d2a::xfer( uint32_t data, char *rxBuf )
+int D2a::xfer( uint32_t data, char *rxBuf )
 {
 	// flip endian for SPI chip required order
 	data = htonl( data );
@@ -39,12 +39,12 @@ int d2a::xfer( uint32_t data, char *rxBuf )
 // this system has  a max output of 10V, so
 // 100% --> 10V
 // 10% --> 1V
-float d2a::percent2Voltage( float percent )
+float D2a::percent2Voltage( float percent )
 {
 	return percent / 10.0f;
 }
 
-// voltage to d2a register value
+// voltage to D2a register value
 // Vout = Vref * Gain * D / 2^n
 // where:
 // D is the decimal equivalent of the code loaded to the DAC.
@@ -52,7 +52,7 @@ float d2a::percent2Voltage( float percent )
 // VREFIN is the reference voltage 2.5V.
 // Gain is an internal gain the value of which depends on the
 // output range selected by the user as shown in Table 7.
-uint32_t d2a::voltage2reg( float voltage )
+uint32_t D2a::voltage2reg( float voltage )
 {
 	// D = ( Vout * 2^n ) / ( Vref * Gain )
 
@@ -62,22 +62,21 @@ uint32_t d2a::voltage2reg( float voltage )
 	return (uint32_t)(( voltage * 65535.0f ) / ( 2.5f * 4.32f ));
 }
 
-void d2a::ldacHigh( void )
+void D2a::ldacHigh( void )
 {
 	gpioWrite( ldac_, PI_HIGH );
 }
-void d2a::ldacLow( void )
+void D2a::ldacLow( void )
 {
 	gpioWrite( ldac_, PI_LOW );
 }
 
 
 // user level command to set the output between 0-100%
-int d2a::set( char dac, float percent )
+int D2a::set( char dac, float percent )
 {
 	uint32_t mydac = 0;
 
-	// ldacLow();
 	float voltage = percent2Voltage( percent );
 	uint32_t reg = voltage2reg( voltage );
 
@@ -105,6 +104,15 @@ int d2a::set( char dac, float percent )
 	{
 		return retVal;
 	}
-	// ldacHigh();
 }
+
+
+void D2a::motorEnable( bool enable )
+{
+	if( enable )
+		gpioWrite( ENABLE_MOTOR_GPIO, PI_HIGH );
+	else
+		gpioWrite( ENABLE_MOTOR_GPIO, PI_LOW );
+}
+
 

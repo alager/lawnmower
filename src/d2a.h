@@ -38,13 +38,23 @@ using std::endl;
 #define CTRL_REG_LOAD		( 0x05 << 16 )
 
 #define ENABLE_10V_GPIO		( 27 )
-class d2a
+#define ENABLE_MOTOR_GPIO	( 25 )
+
+#define SPI_LDAC	(24)
+
+#pragma once
+class D2a
 {
 public:
 	
+	// Constructor
+	D2a() : D2a( SPI_LDAC )
+	{
+
+	}
 
 	// Constructor
-	d2a( unsigned int ldac	)
+	D2a( unsigned int ldac	)
 	{
 		// squirl away our private variables
 		ldac_ = ldac;
@@ -63,8 +73,11 @@ public:
 		gpioSetMode( ENABLE_10V_GPIO, PI_OUTPUT);
 		gpioWrite( ENABLE_10V_GPIO, PI_HIGH );
 
+		// set the motor enable GPIO as an output
+		gpioSetMode( ENABLE_MOTOR_GPIO, PI_OUTPUT );
+
 		// configure SPI
-		handle_ = spiOpen( 0, BAUD_500K, 0 );
+		handle_ = spiOpen( 0, BAUD_5M, 0 );
 		if( handle_ < 0 )
 			throw std::runtime_error( "failed to construct: SPI" );
 		cout << "d2a SPI Handle: " << handle_ << endl;
@@ -86,10 +99,12 @@ public:
 		reg__ = 0;
 		reg__ = DAC_WRITE |  REG_CTRL | DAC_ALL | 0x5555;
 		write( reg__ );
+
+		motorEnable( true );
 	}
 
 	// Destructor
-	~d2a()
+	~D2a()
 	{
 		// spiClose( (unsigned int)handle_ );
 	}
@@ -113,6 +128,7 @@ public:
 
 	// user API
 	int set( char dac, float percent );
+	void motorEnable( bool enable );
 
 
 
