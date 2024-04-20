@@ -77,7 +77,7 @@ public:
 		gpioSetMode( ENABLE_MOTOR_GPIO, PI_OUTPUT );
 
 		// configure SPI
-		handle_ = spiOpen( 0, BAUD_5M, 0 );
+		handle_ = spiOpen( 0, BAUD_2M, 0 );
 		if( handle_ < 0 )
 			throw std::runtime_error( "failed to construct: SPI" );
 		cout << "d2a SPI Handle: " << handle_ << endl;
