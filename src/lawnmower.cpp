@@ -1,6 +1,5 @@
 #include "lawnmower.h"
-#include "d2a.h"
-#include "a2d.h"
+
 #include <unistd.h>	// for sleep()
 
 int main() 
@@ -15,20 +14,17 @@ int main()
 	// Close the file stream object
 	// outfile.close();
 
-	cout << "pre init" << endl;
-	if (gpioInitialise()<0) 
-		return 1;
 
 	cout << "post init" << endl;
 	
-	// int handle_ = spiOpen( 0, BAUD_32K, 0 );
-	// create a d2a object
-	d2a ad5754( SPI_LDAC );
-	int foo = ad5754.set( 'a', 25 );
-	cout << "set return: " << foo << endl;
+	// create a motors object
+	Motors mtr = Motors();
+	
 
-	// cout << "writing to SPI " << sizeof( buff ) << " bytes" << endl;
-	// cout << "write return: " << ad5754.write( buff ) << endl;
+	mtr.forward( 50.5 );
+
+	sleep( 15 );
+	mtr.estop( );
 
 	// create a a2d object
 	// a2d ads8678( SPI_CLK, SPI_MISO, SPI_MOSI, SPI_CS_D2A );
@@ -38,3 +34,4 @@ int main()
 	gpioTerminate();
 	return 0;
 }
+
