@@ -2,6 +2,9 @@
 
 #include <unistd.h>	// for sleep()
 
+// create a global motors object
+Motors mtr = Motors();
+
 int main() 
 {
 	// uint32_t buff = { 0xaabb1155 };
@@ -14,16 +17,16 @@ int main()
 	// Close the file stream object
 	// outfile.close();
 
-
+	mtr.init();
 	cout << "post init" << endl;
 	
-	// create a motors object
-	Motors mtr = Motors();
+	
 	
 
-	mtr.forward( 50.5 );
+	mtr.forward( 16.5 );
 
-	sleep( 15 );
+	sleep( 60 );
+	// usleep( 500000 ); // 0.5s
 	mtr.estop( );
 
 	// create a a2d object
