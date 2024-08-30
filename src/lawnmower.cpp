@@ -17,15 +17,18 @@ int main()
 	// Close the file stream object
 	// outfile.close();
 
+	// Set up the signal handler
+	signal(SIGINT, signal_handler);
+
 	mtr.init();
 	cout << "post init" << endl;
 	
 	
 	
 
-	mtr.forward( 16.5 );
+	mtr.forward( 22.0f );
 
-	sleep( 60 );
+	sleep( 30 );
 	// usleep( 500000 ); // 0.5s
 	mtr.estop( );
 
@@ -38,3 +41,9 @@ int main()
 	return 0;
 }
 
+
+void signal_handler(int signum)
+{
+	if( SIGINT == signum )
+		mtr.estop( );
+}

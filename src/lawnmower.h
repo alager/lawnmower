@@ -2,6 +2,8 @@
 using std::cout;
 using std::endl;
 #include <fstream>
+#include <csignal>
+
 
 #include <pigpio.h>
 #include "motors.h"
@@ -13,3 +15,4 @@ using std::endl;
 #define SPI_CS_D2A	(8)
 
 
+void signal_handler(int signum);
