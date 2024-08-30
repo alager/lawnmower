@@ -9,6 +9,8 @@
 #define FEEDBACK_RIGHT_MTR	( 2 )
 #define FEEDBACK_CTR_MTR	( 17 )
 
+#define ENABLE_MOTOR_GPIO	( 25 )
+
 #define INPUT_GLITCH_FLTR	( 1 )
 
 #define MIN_SPEED			( 16.0f )

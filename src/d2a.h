@@ -38,7 +38,6 @@ using std::endl;
 #define CTRL_REG_LOAD		( 0x05 << 16 )
 
 #define ENABLE_10V_GPIO		( 27 )
-#define ENABLE_MOTOR_GPIO	( 25 )
 
 #define SPI_LDAC	(24)
 
