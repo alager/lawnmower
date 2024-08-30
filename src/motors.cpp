@@ -171,10 +171,11 @@ void Motors::forward( float speed )
 }
 
 
+// emergency stop of the motors
 void Motors::estop( void )
 {
 	// turn the motor enables off
-	d2a_->motorEnable( false );
+	motorEnable( false );
 
 	// set the dacs to 0% speed 
 	d2a_->set( 'a', 0.0f );
@@ -183,4 +184,10 @@ void Motors::estop( void )
 }
 
 
-
+void Motors::motorEnable( bool enable )
+{
+	if( enable )
+		gpioWrite( ENABLE_MOTOR_GPIO, PI_HIGH );
+	else
+		gpioWrite( ENABLE_MOTOR_GPIO, PI_LOW );
+}

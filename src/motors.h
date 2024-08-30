@@ -2,6 +2,7 @@
 #include <pigpio.h>
 
 #include "d2a.h"
+#include "a2d.h"
 
 // Feedback gpio inputs
 #define FEEDBACK_LEFT_MTR	( 5 )
@@ -28,6 +29,9 @@ public:
 		// get the private d2a object to control the motors
 		d2a_= new D2a();
 
+		// create a a2d object
+		a2d_ = new A2d();
+
 		// setup the feedback inputs
 		gpioSetMode( FEEDBACK_LEFT_MTR, PI_INPUT);
 		gpioSetMode( FEEDBACK_RIGHT_MTR, PI_INPUT);
@@ -37,12 +41,18 @@ public:
 		gpioGlitchFilter( FEEDBACK_LEFT_MTR, INPUT_GLITCH_FLTR );
 		gpioGlitchFilter( FEEDBACK_RIGHT_MTR, INPUT_GLITCH_FLTR );
 		gpioGlitchFilter( FEEDBACK_CTR_MTR, INPUT_GLITCH_FLTR );
+
+		// set the motor enable GPIO as an output
+		gpioSetMode( ENABLE_MOTOR_GPIO, PI_OUTPUT );
+
+		motorEnable( true );
+
 	}
 
 	// Destructor
 	~Motors()
 	{
-
+		estop();
 	}
 
 	static void tick( Motors *myObj );
@@ -54,8 +64,11 @@ public:
 	void init( void );
 	void forward( float speed );
 	void estop( void );
+	void motorEnable( bool enable );
+
 
 private:
 	D2a* d2a_;
+	A2d* a2d_;
 	
 };
