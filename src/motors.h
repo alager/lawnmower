@@ -1,3 +1,6 @@
+#include <math.h>
+#include <pigpio.h>
+
 #include "d2a.h"
 
 // Feedback gpio inputs
@@ -6,6 +9,9 @@
 #define FEEDBACK_CTR_MTR	( 17 )
 
 #define INPUT_GLITCH_FLTR	( 1 )
+
+#define MIN_SPEED			( 16.0f )
+#define MAX_SPEED			( 100.0f )
 
 #pragma once
 class Motors
@@ -31,9 +37,6 @@ public:
 		gpioGlitchFilter( FEEDBACK_LEFT_MTR, INPUT_GLITCH_FLTR );
 		gpioGlitchFilter( FEEDBACK_RIGHT_MTR, INPUT_GLITCH_FLTR );
 		gpioGlitchFilter( FEEDBACK_CTR_MTR, INPUT_GLITCH_FLTR );
-
-		
-
 	}
 
 	// Destructor
@@ -42,13 +45,17 @@ public:
 
 	}
 
+	static void tick( Motors *myObj );
+	// static void tick( );
+
+	static void internalTick( const gpioSample_t *samples, int numSamples, void *myObj );
+	// static void internalTick( const gpioSample_t *samples, int numSamples );
+
 	void init( void );
-	static void tick( void );
-	static void internalTick( const gpioSample_t *samples, int numSamples );
 	void forward( float speed );
 	void estop( void );
 
 private:
 	D2a* d2a_;
-
+	
 };
