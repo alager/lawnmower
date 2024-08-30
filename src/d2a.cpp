@@ -107,12 +107,6 @@ int D2a::set( char dac, float percent )
 }
 
 
-void D2a::motorEnable( bool enable )
-{
-	if( enable )
-		gpioWrite( ENABLE_MOTOR_GPIO, PI_HIGH );
-	else
-		gpioWrite( ENABLE_MOTOR_GPIO, PI_LOW );
-}
+
 
 

@@ -73,8 +73,7 @@ public:
 		gpioSetMode( ENABLE_10V_GPIO, PI_OUTPUT);
 		gpioWrite( ENABLE_10V_GPIO, PI_HIGH );
 
-		// set the motor enable GPIO as an output
-		gpioSetMode( ENABLE_MOTOR_GPIO, PI_OUTPUT );
+		
 
 		// configure SPI
 		handle_ = spiOpen( 0, BAUD_2M, 0 );
@@ -100,7 +99,6 @@ public:
 		reg__ = DAC_WRITE |  REG_CTRL | DAC_ALL | 0x5555;
 		write( reg__ );
 
-		motorEnable( true );
 	}
 
 	// Destructor
@@ -128,7 +126,6 @@ public:
 
 	// user API
 	int set( char dac, float percent );
-	void motorEnable( bool enable );
 
 
 
