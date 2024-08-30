@@ -13,6 +13,7 @@
 				"-lpigpio",
 				"-lrt",
 				"-lpthread",
+				"-lmotors",
 				"-ld2a",
 				"-la2d",
 				"-L${fileDirname}"
