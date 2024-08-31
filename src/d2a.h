@@ -77,12 +77,8 @@ public:
 
 		
 
-		// // configure SPI
+		// configure SPI
 		spi_ = new Spi( DAC_SPI_CHANNEL );
-		// handle_ = spiOpen( 0, BAUD_2M, 0 );
-		// if( handle_ < 0 )
-		// 	throw std::runtime_error( "failed to construct: SPI" );
-		// cout << "d2a SPI Handle: " << handle_ << endl;
 
 		// set output range
 		reg__ = 0;
@@ -110,7 +106,7 @@ public:
 		// spiClose( (unsigned int)handle_ );
 	}
 
-	// // spi data routines
+	// spi data routines
 	int write( uint32_t data );
 	int read( uint8_t * buff );
 	int xfer( uint32_t data, char *rxBuf );
