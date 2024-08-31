@@ -13,24 +13,20 @@ using std::endl;
 #define BAUD_10M	( 10000000 )
 #define BAUD_20M	( 20000000 )
 
-class a2d
+#pragma once
+class A2d
 {
 public:
 	
+	// // Constructor
+	// A2d() : A2d( SPI_LDAC )
+	// {
+
+	// }
 
 	// Constructor
-	a2d(
-		unsigned int clock,
-		unsigned int miso,
-		unsigned int mosi,
-		unsigned int chipSelect
-		)
+	A2d()
 	{
-		// squirl away our private variables
-		clock_ = clock;
-		miso_ = miso;
-		mosi_ = mosi;
-		chipSelect_ = chipSelect;
 
 		// Initialize Pi GPIO
 		if ( gpioInitialise() < 0 ) 
@@ -45,7 +41,7 @@ public:
 	}
 
 	// Destructor
-	~a2d()
+	~A2d()
 	{
 		// spiClose( (unsigned int)handle_ );
 	}

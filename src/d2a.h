@@ -4,16 +4,19 @@ using std::cout;
 using std::endl;
 #include <unistd.h>	// for usleep
 #include <pigpio.h>
+#include "spi.h"
 
 
-#define BAUD_32K	( 32000 )
-#define BAUD_100K	( 100000 )
-#define BAUD_500K	( 500000 )
-#define BAUD_1M		( 1000000 )
-#define BAUD_2M		( 2000000 )
-#define BAUD_5M		( 5000000 )
-#define BAUD_10M	( 10000000 )
-#define BAUD_20M	( 20000000 )
+// #define BAUD_32K	( 32000 )
+// #define BAUD_100K	( 100000 )
+// #define BAUD_500K	( 500000 )
+// #define BAUD_1M		( 1000000 )
+// #define BAUD_2M		( 2000000 )
+// #define BAUD_5M		( 5000000 )
+// #define BAUD_10M	( 10000000 )
+// #define BAUD_20M	( 20000000 )
+
+#define DAC_SPI_CHANNEL		( 0 )
 
 // Chip register defines
 #define DAC_WRITE			( 0 << 23 )
@@ -39,7 +42,7 @@ using std::endl;
 
 #define ENABLE_10V_GPIO		( 27 )
 
-#define SPI_LDAC	(24)
+#define DAC_LDAC	(24)
 
 #pragma once
 class D2a
@@ -47,7 +50,7 @@ class D2a
 public:
 	
 	// Constructor
-	D2a() : D2a( SPI_LDAC )
+	D2a() : D2a( DAC_LDAC )
 	{
 
 	}
@@ -74,11 +77,12 @@ public:
 
 		
 
-		// configure SPI
-		handle_ = spiOpen( 0, BAUD_2M, 0 );
-		if( handle_ < 0 )
-			throw std::runtime_error( "failed to construct: SPI" );
-		cout << "d2a SPI Handle: " << handle_ << endl;
+		// // configure SPI
+		spi_ = new Spi( DAC_SPI_CHANNEL );
+		// handle_ = spiOpen( 0, BAUD_2M, 0 );
+		// if( handle_ < 0 )
+		// 	throw std::runtime_error( "failed to construct: SPI" );
+		// cout << "d2a SPI Handle: " << handle_ << endl;
 
 		// set output range
 		reg__ = 0;
@@ -106,7 +110,7 @@ public:
 		// spiClose( (unsigned int)handle_ );
 	}
 
-	// spi data routines
+	// // spi data routines
 	int write( uint32_t data );
 	int read( uint8_t * buff );
 	int xfer( uint32_t data, char *rxBuf );
@@ -127,11 +131,10 @@ public:
 	int set( char dac, float percent );
 
 
-
-
 private:
 	unsigned int ldac_;
-	int handle_;
+	Spi *spi_;
+	// int handle_;
 
 
 	// internal data buffer for SPI transfers

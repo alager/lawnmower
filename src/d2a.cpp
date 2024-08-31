@@ -13,16 +13,19 @@ int D2a::write( uint32_t data )
 	memcpy( reg_, &data, sizeof( reg_ ) );
 
 	// write the spi data
-	return spiWrite( ( unsigned int )handle_, (char *)reg_, 3 );
+	return spi_->write( (char *)reg_, 3 );
 }
 
 
 int D2a::read( uint8_t * buff )
 {
-	return spiRead( ( unsigned int )handle_, (char *)buff, 3 );
+	// return spiRead( ( unsigned int )handle_, (char *)buff, 3 );
+	return spi_->read( (char *)buff, 3 );
 }
 
-
+// This function transfers count bytes of data from txBuf to the SPI
+// device associated with the handle.  Simultaneously count bytes of
+// data are read from the device and placed in rxBuf.
 int D2a::xfer( uint32_t data, char *rxBuf )
 {
 	// flip endian for SPI chip required order
@@ -31,7 +34,9 @@ int D2a::xfer( uint32_t data, char *rxBuf )
 	// copy to the class register array
 	memcpy( reg_, &data, sizeof( reg_ ) );
 
-	return spiXfer( (unsigned int)handle_, (char *)reg_, rxBuf,  3 );
+	// return spiXfer( (unsigned int)handle_, (char *)reg_, rxBuf,  3 );
+
+	return spi_->xfer( (char *)reg_, rxBuf,  3 );
 }
 
 
@@ -105,8 +110,3 @@ int D2a::set( char dac, float percent )
 		return retVal;
 	}
 }
-
-
-
-
-
