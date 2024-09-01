@@ -1,6 +1,8 @@
 #include <stdexcept>
 #include <iostream>
 #include <cstring>
+#include  <iomanip>
+
 #include <arpa/inet.h>
 using std::cout;
 using std::endl;
@@ -75,12 +77,16 @@ public:
 
 		// set the auto scan channels
 		reg__ = 0;
-		reg__ = ( AUTO_SEQ_EN | WRITE | CHAN_0 | CHAN_1 | CHAN_2 | CHAN_3 | CHAN_4 );
+		//			0x0200		0x100			0x01			0x02				0x04			0x08				0x10
+		//			0x031f
+		reg__ = ( AUTO_SEQ_EN | WRITE | ( 1 << CHAN_0 ) | ( 1 << CHAN_1 ) | ( 1 << CHAN_2 ) | ( 1 << CHAN_3 ) | ( 1 << CHAN_4 ) );
+cout << "A2d reg: 0x" << std::setfill('0') << std::setw(4) << std::right << std::hex << reg__ << endl;
 		write( reg__ );
 
 		// power down the unused channels
 		reg__ = 0;
-		reg__ = ( CHNL_PWR_DWN | WRITE | CHAN_5 | CHAN_6 | CHAN_7 );
+		reg__ = ( CHNL_PWR_DWN | WRITE | ( 1 << CHAN_5 ) | ( 1 << CHAN_6 ) | ( 1 << CHAN_7 ) );
+// cout << "A2d reg: 0x" << std::setfill('0') << std::setw(4) << std::right<< std::hex << reg__ << endl;
 		write( reg__ );
 
 		// set the PGA gain to 1.25.  Output is 1.25 * Vref => 1.25 * 4.096 = 5.12V
