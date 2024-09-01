@@ -1,9 +1,7 @@
 #include "lawnmower.h"
 
-#include <unistd.h>	// for sleep()
-
 // create a global motors object
-Motors mtr = Motors();
+Motors* mtr = new Motors();
 
 int main() 
 {
@@ -18,23 +16,17 @@ int main()
 	// outfile.close();
 
 	// Set up the signal handler
-	signal(SIGINT, signal_handler);
+	signal(SIGINT, sigINT_handler);
 
-	mtr.init();
+	mtr->init();
 	cout << "post init" << endl;
-	
-	
-	
 
-	mtr.forward( 22.0f );
-
-	sleep( 30 );
+	mtr->forward( 23.0f );
+	sleep( 5 );
+	mtr->forward( 16.0f );
+	sleep( 5 );
 	// usleep( 500000 ); // 0.5s
-	mtr.estop( );
-
-	// create a a2d object
-	// a2d ads8678( SPI_CLK, SPI_MISO, SPI_MOSI, SPI_CS_D2A );
-
+	mtr->estop( );
 
 	// this is the end
 	gpioTerminate();
@@ -42,8 +34,10 @@ int main()
 }
 
 
-void signal_handler(int signum)
+// turn off esential GPIO
+// void sigINT_handler( Motors *mtr, int signum )
+void sigINT_handler( int signum )
 {
-	if( SIGINT == signum )
-		mtr.estop( );
+	delete mtr;			// invoke destructor
+	exit( signum );		// exit program
 }
