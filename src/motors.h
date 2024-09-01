@@ -29,7 +29,7 @@ public:
 			throw std::runtime_error( "failed to construct: GPIOInit" );
 
 		// get the private d2a object to control the motors
-		d2a_= new D2a();
+		// d2a_= new D2a();
 
 		// create a a2d object
 		a2d_ = new A2d();
