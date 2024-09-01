@@ -2,19 +2,34 @@
 
 // a class for working with the d2a chip
 
-int A2d::write( uint8_t * data, unsigned int count )
+int A2d::write( uint32_t data )
 {
-	return spiWrite( ( unsigned int )handle_, (char *)data, count );
+	// flip endian for SPI chip required order
+	data = htonl( data << 8 );
+
+	// copy to the class register array
+	memcpy( reg_, &data, sizeof( reg_ ) );
+
+	// write the spi data
+	return spi_->write( (char *)reg_, 3 );
 }
 
 
-int A2d::read( uint8_t * data, unsigned int count )
+int A2d::read( char * data )
 {
-	return spiRead( ( unsigned int )handle_, (char *)data, count );
+	return spi_->read( (char *)data, 3 );
 }
 
 
-int A2d::xfer( char *txBuf, char *rxBuf, unsigned int count )
+int A2d::xfer( char *txBuf, char *rxBuf )
 {
-	return spiXfer( (unsigned int)handle_, txBuf, rxBuf,  count );
+	return spi_->xfer( txBuf, rxBuf, 3 );
+}
+
+
+void A2d::setRange( unsigned chan, uint8_t gain )
+{
+	reg__ = 0;
+	reg__ = ( chan | WRITE | gain );
+	write( reg__ );
 }
