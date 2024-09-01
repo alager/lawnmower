@@ -1,5 +1,3 @@
-#include <cstring>
-#include <arpa/inet.h>
 #include "d2a.h"
 
 // a class for working with the D2a chip

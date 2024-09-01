@@ -1,5 +1,7 @@
 #include <stdexcept>
 #include <iostream>
+#include <cstring>
+#include <arpa/inet.h>
 using std::cout;
 using std::endl;
 #include <unistd.h>	// for usleep
@@ -104,6 +106,9 @@ public:
 	~D2a()
 	{
 		// spiClose( (unsigned int)handle_ );
+
+		// turn off the 10V supply
+		gpioWrite( ENABLE_10V_GPIO, PI_LOW );
 	}
 
 	// spi data routines
