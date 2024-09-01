@@ -8,16 +8,6 @@ using std::endl;
 #include <pigpio.h>
 #include "spi.h"
 
-
-// #define BAUD_32K	( 32000 )
-// #define BAUD_100K	( 100000 )
-// #define BAUD_500K	( 500000 )
-// #define BAUD_1M		( 1000000 )
-// #define BAUD_2M		( 2000000 )
-// #define BAUD_5M		( 5000000 )
-// #define BAUD_10M	( 10000000 )
-// #define BAUD_20M	( 20000000 )
-
 #define DAC_SPI_CHANNEL		( 0 )
 
 // Chip register defines
