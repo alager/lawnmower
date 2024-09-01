@@ -114,6 +114,8 @@ void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *my
 		}
 	}
 
+	// this loop handles reading in the GPIO pulses in an efficient manner
+	// instead of an interrupt for each one.
 	for (int s = 0; s < numSamples; s++)
 	{
 		tickDiff = samples[s].tick - lastReportTick;
