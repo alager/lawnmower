@@ -58,7 +58,7 @@ public:
 	}
 
 	static void tick( Motors *myObj );
-	// static void tick( );
+	static void tickA2D( Motors *myObj );
 
 	static void internalTick( const gpioSample_t *samples, int numSamples, void *myObj );
 	// static void internalTick( const gpioSample_t *samples, int numSamples );

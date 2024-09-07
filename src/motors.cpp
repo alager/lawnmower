@@ -10,8 +10,16 @@ static uint32_t reportInterval = OPT_R_DEF * 100000;	// 500ms default
 static volatile int g_pulse_count[ MAX_GPIOS ];
 static volatile int g_update_counts = 1;
 
+// globals that allow the static callbacks to share data with the objects
 float targetSpeed_A_, targetSpeed_B_;
 float currentSpeed_A_, currentSpeed_B_;
+
+// telemetry 
+float VbattArry_[ 8 ], Vbatt;			// Input Voltage
+float AmpTotalArry_[ 8 ], AmpTotal;		// Total
+float AmpMtrLArry_[ 8 ], AmpMtrL; 		// Left
+float AmpMtrRArry_[ 8 ], AmpMtrR; 		// Right
+float AmpMtrCtrArry_[ 8 ], AmpMtrCtr;	// Cutter 
 
 
 void Motors::init( void )
@@ -41,7 +49,6 @@ void Motors::init( void )
 // P = freq. in Hz
 #define POLES	( 8 )
 void Motors::tick( Motors *myObj )
-// void Motors::tick( )
 {
 	float perSec;
 
@@ -78,12 +85,30 @@ void Motors::tick( Motors *myObj )
 cout << "CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
 
 		myObj->d2a_->set('a', currentSpeed_A_ );
-		myObj->d2a_->set('b', currentSpeed_A_ );
+	}
 
+	if( currentSpeed_B_ != targetSpeed_B_ )
+	{
+		float delta = targetSpeed_B_ - currentSpeed_B_;
+
+		if( abs( delta ) > 2.0f )
+			currentSpeed_B_ += delta / 16.0f;
+		else
+			currentSpeed_B_ = targetSpeed_B_;
+
+cout << "CSpeed: " << currentSpeed_B_ << ", TSpeed: " << targetSpeed_B_ << endl;
+		myObj->d2a_->set('b', currentSpeed_B_ );
 	}
 
 }
 
+void Motors::tickA2D( Motors *myObj )
+{
+	static uint8_t idx = 0;
+	// read the A2D data
+
+	// 
+}
 
 // The intrnal tick call back run by Pigpio.  It gets called every ~1ms
 void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *myObj )
@@ -149,6 +174,9 @@ void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *my
 			}
 		}
 	}
+
+	// get readings from the A2D
+	tickA2D( (Motors*)(myObj) );
 }
 
 

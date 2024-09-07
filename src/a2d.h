@@ -12,16 +12,24 @@ using std::endl;
 
 #define A2D_SPI_CHANNEL		( 1 )
 
-// #define BAUD_32K	( 32000 )
-// #define BAUD_100K	( 100000 )
-// #define BAUD_500K	( 500000 )
-// #define BAUD_1M		( 1000000 )
-// #define BAUD_2M		( 2000000 )
-// #define BAUD_5M		( 5000000 )
-// #define BAUD_10M	( 10000000 )
-// #define BAUD_20M	( 20000000 )
+// Command Register addresses
+#define CMD_NO_OP		( 0x0000 )
+#define CMD_STDBY		( 0x8200 )
+#define CMD_PWR_DN		( 0x8300 )
+#define CMD_RST			( 0x8500 )
+#define CMD_AUTO_RST	( 0xa000 )
+#define CMD_MAN_Ch_0	( 0xc000 )
+#define CMD_MAN_Ch_1	( 0xc400 )
+#define CMD_MAN_Ch_2	( 0xc800 )
+#define CMD_MAN_Ch_3	( 0xcc00 )
+#define CMD_MAN_Ch_4	( 0xd000 )
+#define CMD_MAN_Ch_5	( 0xd400 )
+#define CMD_MAN_Ch_6	( 0xd800 )
+#define CMD_MAN_Ch_7	( 0xdc00 )
+#define CMD_MAN_AUX		( 0xe000 )
 
-// Register addresses
+
+// Program Register addresses
 #define AUTO_SEQ_EN		( 0x0100 << 1 )
 #define CHNL_PWR_DWN	( 0x0200 << 1 )
 #define FEATURE			( 0x0300 << 1 )
@@ -104,10 +112,15 @@ cout << "A2d reg: 0x" << std::setfill('0') << std::setw(4) << std::right << std:
 	}
 
 	int write( uint32_t data );
+	int writeCmd( uint32_t data );
 	int read( char *buff );
 	int xfer( char *data, char *rxBuf );
 
 	void setRange( unsigned chan, uint8_t gain );
+	void auto_rst( void );
+	void no_op( void );
+
+
 
 
 private:
