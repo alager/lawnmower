@@ -16,6 +16,12 @@
 #define MIN_SPEED			( 16.0f )
 #define MAX_SPEED			( 100.0f )
 
+#define TLM_LEFT_AMPS		( 0 )
+#define TLM_RIGHT_AMPS		( 1 )
+#define TLM_CUTR_AMPS		( 2 )
+#define TLM_TOTAL_AMPS		( 3 )
+#define TLM_VOLTS_AMPS		( 4 )
+
 #pragma once
 class Motors
 {
@@ -72,5 +78,5 @@ public:
 private:
 	D2a* d2a_;
 	A2d* a2d_;
-	
+	uint8_t telemIdx_;
 };

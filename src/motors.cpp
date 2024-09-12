@@ -21,7 +21,6 @@ float AmpMtrLArry_[ 8 ], AmpMtrL; 		// Left
 float AmpMtrRArry_[ 8 ], AmpMtrR; 		// Right
 float AmpMtrCtrArry_[ 8 ], AmpMtrCtr;	// Cutter 
 
-
 void Motors::init( void )
 {
 
@@ -104,10 +103,66 @@ cout << "CSpeed: " << currentSpeed_B_ << ", TSpeed: " << targetSpeed_B_ << endl;
 
 void Motors::tickA2D( Motors *myObj )
 {
-	static uint8_t idx = 0;
-	// read the A2D data
+	static bool first_LA = true;
+	static bool first_RA = true;
+	static bool first_CA = true;
+	static bool first_TA = true;
+	static bool first_V = true;
 
-	// 
+
+	// read the A2D data
+	float telem = myObj->a2d_->update( myObj->telemIdx_ );
+
+	switch( myObj->telemIdx_ )
+	{
+		case TLM_LEFT_AMPS:
+			if( first_LA )
+			{
+				first_LA = false;
+				for( unsigned idx = 0; idx < sizeof(AmpMtrLArry_) / sizeof( AmpMtrLArry_[ 0 ] ); idx++ )
+					AmpMtrLArry_[ idx ] = telem;
+			}
+			break;
+		case TLM_RIGHT_AMPS:
+			if( first_RA )
+			{
+				first_RA = false;
+				for( unsigned idx = 0; idx < sizeof(AmpMtrRArry_) / sizeof( AmpMtrRArry_[ 0 ] ); idx++ )
+					AmpMtrRArry_[ idx ] = telem;
+			}
+			break;
+		case TLM_CUTR_AMPS:
+			if( first_CA )
+			{
+				first_CA = false;
+				for( unsigned idx = 0; idx < sizeof(AmpMtrCtrArry_) / sizeof( AmpMtrCtrArry_[ 0 ] ); idx++ )
+					AmpMtrCtrArry_[ idx ] = telem;
+			}
+			break;
+		case TLM_TOTAL_AMPS:
+			if( first_TA )
+			{
+				first_TA = false;
+				for( unsigned idx = 0; idx < sizeof(AmpTotalArry_) / sizeof( AmpTotalArry_[ 0 ] ); idx++ )
+					AmpTotalArry_[ idx ] = telem;
+			}
+			break;
+		case TLM_VOLTS_AMPS:
+			if( first_V )
+			{
+				first_V = false;
+				for( unsigned idx = 0; idx < sizeof(VbattArry_) / sizeof( VbattArry_[ 0 ] ); idx++ )
+					VbattArry_[ idx ] = telem;
+			}
+			break;
+		default:
+			break;
+	}
+
+	// increment to the next telemetry value 
+	if( myObj->telemIdx_++ > 4 )
+		myObj->telemIdx_ = 0;
+
 }
 
 // The intrnal tick call back run by Pigpio.  It gets called every ~1ms
