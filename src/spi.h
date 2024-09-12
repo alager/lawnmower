@@ -38,6 +38,7 @@ public:
 
 	}
 
+
 	// spi data routines
 	int write( char *data, unsigned count );
 	int read( char *buff, unsigned count );

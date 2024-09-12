@@ -16,12 +16,6 @@ int Spi::read( char *buff, unsigned count )
 
 int Spi::xfer( char *data, char *rxBuf, unsigned count )
 {
-	// flip endian for SPI chip required order
-	// data = htonl( data );
-
-	// // copy to the class register array
-	// memcpy( reg_, &data, sizeof( reg_ ) );
-
 	return spiXfer( (unsigned int)handle_, data, rxBuf,  count );
 }
 
