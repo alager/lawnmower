@@ -103,6 +103,9 @@ cout << "A2d reg: 0x" << std::setfill('0') << std::setw(4) << std::right << std:
 		setRange( RANGE_CH2, GAIN_1_25 );
 		setRange( RANGE_CH3, GAIN_1_25 );
 		setRange( RANGE_CH4, GAIN_1_25 );
+
+		// set auto mode to start conversions
+		auto_rst();
 	}
 
 	// Destructor
@@ -119,6 +122,7 @@ cout << "A2d reg: 0x" << std::setfill('0') << std::setw(4) << std::right << std:
 	void setRange( unsigned chan, uint8_t gain );
 	void auto_rst( void );
 	void no_op( void );
+	float update( unsigned idx );
 
 
 
@@ -127,11 +131,11 @@ private:
 	// internal data buffer for SPI transfers
 	// the ADS8674 a2d has a 32bit control register and is MSB first
 	// The command register is a 16-bit, write-only register that is used to set the operating mode
-	// The program register is a 16-bit read or write register followed by 8 bits of data
-	/*----------------------------------------------------------------------
+	// The program register is a 16-bit read or write register followed by 8 bits of data (24 bits total)
+	/*		------------------------------------
 			| REGISTER ADDRESS | WR/RD |  Data |
 			|      15 - 9      |   8   | 7 - 0 |
-	------------------------------------------------------------------------ */
+			------------------------------------ */
 
 	Spi *spi_;
 	uint8_t	reg_[4];

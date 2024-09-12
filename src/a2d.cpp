@@ -19,7 +19,7 @@ int A2d::write( uint32_t data )
 // write the 16 bit command followed by 16 bits of 0s
 int A2d::writeCmd( uint32_t data )
 {
-// flip endian for SPI chip required order
+	// flip endian for SPI chip required order
 	data = htonl( data << 16 );
 
 	// copy to the class register array
@@ -59,4 +59,12 @@ void A2d::auto_rst( void )
 void A2d::no_op( void )
 {
 	writeCmd( CMD_NO_OP );
+}
+
+// read the specified channel and return it as a float
+float A2d::update( unsigned idx )
+{
+	reg__ = 0;
+	reg__ = CMD_NO_OP;
+	xfer( reg__,  );
 }
