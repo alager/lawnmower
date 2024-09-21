@@ -36,9 +36,17 @@ int A2d::read( char * data )
 }
 
 
-int A2d::xfer( char *txBuf, char *rxBuf )
+int A2d::xfer( uint32_t data, char *rxBuf )
 {
-	return spi_->xfer( txBuf, rxBuf, 3 );
+	// return spi_->xfer( txBuf, rxBuf, 3 );
+	// flip endian for SPI chip required order
+	data = htonl( data << 16 );
+
+	// copy to the class register array
+	memcpy( reg_, &data, sizeof( reg_ ) );
+
+	// 16 bits of command and 16 clocks to read data (32 total)
+	return spi_->xfer( (char *)reg_, rxBuf, 4 );
 }
 
 
@@ -64,7 +72,19 @@ void A2d::no_op( void )
 // read the specified channel and return it as a float
 float A2d::update( unsigned idx )
 {
-	reg__ = 0;
+	( void )idx;
+	std::array <char, 4> rxData;	//C++ array
+	uint16_t data;
+
+	cout << std::right << std::hex << std::uppercase << std::setfill('0');
+
 	reg__ = CMD_NO_OP;
-	xfer( reg__,  );
+	// reg__ = CMD_MAN_Ch_4;
+	xfer( reg__, rxData.data());
+	
+	// assemble the received bytes together into a 16 bit type and right align the data to bit 0
+	data = static_cast<uint16_t>(( rxData.at(2) << 8 ) | rxData.back() ) >> 2;
+	cout << "0x" << std::setw(4) << data << endl;
+
+	return static_cast<float>(data);
 }
