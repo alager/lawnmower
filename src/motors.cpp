@@ -15,11 +15,15 @@ float targetSpeed_A_, targetSpeed_B_;
 float currentSpeed_A_, currentSpeed_B_;
 
 // telemetry 
-float VbattArry_[ 8 ], Vbatt;			// Input Voltage
+std::array <float, 8> VbattArry_;		// Input Voltage array
+float Vbatt;							// Input Voltage
 float AmpTotalArry_[ 8 ], AmpTotal;		// Total
 float AmpMtrLArry_[ 8 ], AmpMtrL; 		// Left
 float AmpMtrRArry_[ 8 ], AmpMtrR; 		// Right
 float AmpMtrCtrArry_[ 8 ], AmpMtrCtr;	// Cutter 
+
+#define ArraySz	( sizeof( VbattArry_ ) / sizeof( VbattArry_[ 0 ] ) )
+
 
 void Motors::init( void )
 {
@@ -31,10 +35,12 @@ void Motors::init( void )
 
 	g_mask = ( 1 << FEEDBACK_LEFT_MTR | 1 << FEEDBACK_RIGHT_MTR | 1 << FEEDBACK_CTR_MTR );
 
-	// g_num_gpios = __builtin_popcount( g_mask );
-	// gpioSetGetSamplesFunc( Motors::internalTick, g_mask );
+	// configure a callback for gpio changes based on the g_mask
 	gpioSetGetSamplesFuncEx( Motors::internalTick, g_mask, this );
 	cout << "motor feedback configured" << endl;
+
+	// configure a call back to happen every 100ms for the a2d
+	gpioSetTimerFuncEx( TIMER_0, MILLY_SECS_100, Motors::tickA2D, this );
 }
 
 
@@ -76,7 +82,7 @@ void Motors::tick( Motors *myObj )
 		float delta = targetSpeed_A_ - currentSpeed_A_;
 
 		if( abs( delta ) > 2.0f )
-			currentSpeed_A_ += delta / 16.0f;
+			currentSpeed_A_ += delta / 8.0f;
 		else
 			currentSpeed_A_ = targetSpeed_A_;
 
@@ -91,7 +97,7 @@ cout << "CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
 		float delta = targetSpeed_B_ - currentSpeed_B_;
 
 		if( abs( delta ) > 2.0f )
-			currentSpeed_B_ += delta / 16.0f;
+			currentSpeed_B_ += delta / 8.0f;
 		else
 			currentSpeed_B_ = targetSpeed_B_;
 
@@ -101,7 +107,8 @@ cout << "CSpeed: " << currentSpeed_B_ << ", TSpeed: " << targetSpeed_B_ << endl;
 
 }
 
-void Motors::tickA2D( Motors *myObj )
+// gets called ~10ms by the pigpio timer
+void Motors::tickA2D( void *myObjV )
 {
 	static bool first_LA = true;
 	static bool first_RA = true;
@@ -109,50 +116,69 @@ void Motors::tickA2D( Motors *myObj )
 	static bool first_TA = true;
 	static bool first_V = true;
 
+	// cast it from void to Motors type for the rest of the code
+	Motors *myObj = static_cast< Motors* >( myObjV );
 
 	// read the A2D data
 	float telem = myObj->a2d_->update( myObj->telemIdx_ );
 
 	switch( myObj->telemIdx_ )
 	{
-		case TLM_LEFT_AMPS:
+		case TLM_TOTAL_AMPS:
 			if( first_LA )
 			{
 				first_LA = false;
 				for( unsigned idx = 0; idx < sizeof(AmpMtrLArry_) / sizeof( AmpMtrLArry_[ 0 ] ); idx++ )
 					AmpMtrLArry_[ idx ] = telem;
 			}
+			cout << "Total Current: " << telem << endl;
 			break;
-		case TLM_RIGHT_AMPS:
+		case TLM_LEFT_AMPS:
 			if( first_RA )
 			{
 				first_RA = false;
 				for( unsigned idx = 0; idx < sizeof(AmpMtrRArry_) / sizeof( AmpMtrRArry_[ 0 ] ); idx++ )
 					AmpMtrRArry_[ idx ] = telem;
 			}
+			cout << "Left Current: " << telem << endl;
 			break;
-		case TLM_CUTR_AMPS:
+		case TLM_RIGHT_AMPS:
 			if( first_CA )
 			{
 				first_CA = false;
 				for( unsigned idx = 0; idx < sizeof(AmpMtrCtrArry_) / sizeof( AmpMtrCtrArry_[ 0 ] ); idx++ )
 					AmpMtrCtrArry_[ idx ] = telem;
 			}
+			cout << "Right Current: " << telem << endl;
 			break;
-		case TLM_TOTAL_AMPS:
+		case TLM_CUTR_AMPS:
 			if( first_TA )
 			{
 				first_TA = false;
 				for( unsigned idx = 0; idx < sizeof(AmpTotalArry_) / sizeof( AmpTotalArry_[ 0 ] ); idx++ )
 					AmpTotalArry_[ idx ] = telem;
 			}
+			cout << "Cutter Current: " << telem << endl;
 			break;
 		case TLM_VOLTS_AMPS:
-			if( first_V )
 			{
-				first_V = false;
-				for( unsigned idx = 0; idx < sizeof(VbattArry_) / sizeof( VbattArry_[ 0 ] ); idx++ )
-					VbattArry_[ idx ] = telem;
+				static unsigned idx = 0;
+				// telem * 5.12 / 2^14 * 11.07 / 1.07
+				telem = ( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) * 11.07f / 1.07f;
+				cout << "VoltageTelem: " << telem << endl;
+				
+				if( first_V )
+				{
+					first_V = false;
+					for( unsigned ix = 0; ix < sizeof(VbattArry_) / sizeof( VbattArry_[ 0 ] ); ix++ )
+						VbattArry_[ ix ] = telem;
+				}
+
+				VbattArry_[ idx++ ] = telem;
+				idx &= ArraySz;
+				
+				Vbatt = std::accumulate( VbattArry_.begin(), VbattArry_.end(), 0.0f ) / static_cast< float >(ArraySz);
+				cout << "VoltageAvg: " << Vbatt << endl;
 			}
 			break;
 		default:
@@ -165,7 +191,7 @@ void Motors::tickA2D( Motors *myObj )
 
 }
 
-// The intrnal tick call back run by Pigpio.  It gets called every ~1ms
+// The intrnal tick call back run by Pigpio.  It gets called based on gpio changes
 void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *myObj )
 {
 	static int inited = 0;
@@ -180,7 +206,7 @@ void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *my
 	
 	if (!inited)
 	{
-		cout << "\n\n\n\n\n\n***Initing***" << endl;
+		cout << "\n\n\n***Initing***" << endl;
 		cout << "g_num_gpios: " << g_num_gpios << endl;
 		
 		inited = 1;

@@ -1,4 +1,6 @@
-#include <math.h>
+#include <cmath>
+using std::abs;
+#include <numeric>
 #include <pigpio.h>
 
 #include "d2a.h"
@@ -16,11 +18,15 @@
 #define MIN_SPEED			( 16.0f )
 #define MAX_SPEED			( 100.0f )
 
-#define TLM_LEFT_AMPS		( 0 )
-#define TLM_RIGHT_AMPS		( 1 )
-#define TLM_CUTR_AMPS		( 2 )
-#define TLM_TOTAL_AMPS		( 3 )
+#define TLM_TOTAL_AMPS		( 0 )
+#define TLM_LEFT_AMPS		( 1 )
+#define TLM_RIGHT_AMPS		( 2 )
+#define TLM_CUTR_AMPS		( 3 )
 #define TLM_VOLTS_AMPS		( 4 )
+
+#define TIMER_0				( 0 )
+#define MILLY_SECS_10		( 10 )
+#define MILLY_SECS_100		( 100 )
 
 #pragma once
 class Motors
@@ -34,11 +40,12 @@ public:
 		if ( gpioInitialise() < 0 ) 
 			throw std::runtime_error( "failed to construct: GPIOInit" );
 
-		// get the private d2a object to control the motors
-		// d2a_= new D2a();
+		
 
 		// create a a2d object
 		a2d_ = new A2d();
+		// get the private d2a object to control the motors
+		d2a_= new D2a();
 
 		// setup the feedback inputs
 		gpioSetMode( FEEDBACK_LEFT_MTR, PI_INPUT);
@@ -64,10 +71,9 @@ public:
 	}
 
 	static void tick( Motors *myObj );
-	static void tickA2D( Motors *myObj );
+	static void tickA2D( void *myObj );
 
 	static void internalTick( const gpioSample_t *samples, int numSamples, void *myObj );
-	// static void internalTick( const gpioSample_t *samples, int numSamples );
 
 	void init( void );
 	void forward( float speed );
@@ -78,5 +84,5 @@ public:
 private:
 	D2a* d2a_;
 	A2d* a2d_;
-	uint8_t telemIdx_;
+	uint8_t telemIdx_ = 0;
 };
