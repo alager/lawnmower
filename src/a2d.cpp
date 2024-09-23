@@ -76,15 +76,14 @@ float A2d::update( unsigned idx )
 	std::array <char, 4> rxData;	//C++ array
 	uint16_t data;
 
-	cout << std::right << std::hex << std::uppercase << std::setfill('0');
+	// cout << std::right << std::hex << std::uppercase << std::setfill('0');
 
 	reg__ = CMD_NO_OP;
-	// reg__ = CMD_MAN_Ch_4;
 	xfer( reg__, rxData.data());
 	
 	// assemble the received bytes together into a 16 bit type and right align the data to bit 0
 	data = static_cast<uint16_t>(( rxData.at(2) << 8 ) | rxData.back() ) >> 2;
-	cout << "0x" << std::setw(4) << data << endl;
+	// cout << "0x" << std::setw(4) << data << endl;
 
 	return static_cast<float>(data);
 }

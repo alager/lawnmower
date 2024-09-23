@@ -90,7 +90,7 @@ public:
 		//			0x0200		0x100			0x01			0x02				0x04			0x08				0x10
 		//			0x031f
 		reg__ = ( AUTO_SEQ_EN | WRITE | ( 1 << CHAN_0 ) | ( 1 << CHAN_1 ) | ( 1 << CHAN_2 ) | ( 1 << CHAN_3 ) | ( 1 << CHAN_4 ) );
-cout << "A2d reg auto: 0x" << std::setfill('0') << std::setw(4) << std::right << std::hex << reg__ << endl;
+// cout << "A2d reg auto: 0x" << std::setfill('0') << std::setw(4) << std::right << std::hex << reg__ << endl;
 		write( reg__ );
 
 		// power down the unused channels
