@@ -17,21 +17,31 @@ using std::endl;
 #define BAUD_10M	( 10000000 )
 #define BAUD_20M	( 20000000 )
 
+#define SPI_MODE_0	( 0 )
+#define SPI_MODE_1	( 1 )
 
 #pragma once
 class Spi
 {
 public:
-	// int handle;
-
 	// Constructor
-	Spi( unsigned channel )
+	Spi( unsigned channel, unsigned config )
 	{
 		// squirl away our private variables
 		channel_ = channel;
 
+        // 			@ MISO @ MOSI @ SCLK @ CE0 @ CE1 @ CE2
+		// Main SPI @    9 @   10 @   11 @   8 @   7 @   -
+		// Mode POL PHA
+		// 0    0   0
+		// 1    0   1		<-- falling edge of the clock
+		// 2    1   0
+		// 3    1   1
+
+
 		// configure SPI
-		handle_ = spiOpen( channel_, BAUD_2M, 0 );
+		// config is for all the config bits, but they defualt to zero for us except for the mode
+		handle_ = spiOpen( channel_, BAUD_2M, config );
 		if( handle_ < 0 )
 			throw std::runtime_error( "failed to construct: SPI" );
 		cout << "d2a SPI Handle: " << handle_ << endl;
@@ -46,6 +56,6 @@ public:
 
 
 private:
-	unsigned channel_;
-	int handle_;
+	unsigned channel_ = 0;
+	int handle_ = 0;
 };
