@@ -67,10 +67,8 @@ public:
 		gpioSetMode( ENABLE_10V_GPIO, PI_OUTPUT);
 		gpioWrite( ENABLE_10V_GPIO, PI_HIGH );
 
-		
-
 		// configure SPI
-		spi_ = new Spi( DAC_SPI_CHANNEL );
+		spi_ = new Spi( DAC_SPI_CHANNEL, SPI_MODE_1 );
 
 		// set output range
 		reg__ = 0;
