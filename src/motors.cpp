@@ -40,7 +40,7 @@ void Motors::init( void )
 	cout << "motor feedback configured" << endl;
 
 	// configure a call back to happen every 100ms for the a2d
-	gpioSetTimerFuncEx( TIMER_0, MILLY_SECS_100, Motors::tickA2D, this );
+	gpioSetTimerFuncEx( TIMER_0, MILLY_SECS_10, Motors::tickA2D, this );
 }
 
 
@@ -162,22 +162,28 @@ void Motors::tickA2D( void *myObjV )
 			break;
 		case TLM_VOLTS_AMPS:
 			{
-				static unsigned idx = 0;
+				// static unsigned idx = 0;
+
+				// cout << "PreTelem: " << telem;
+				telem = telem * 1.06208566323f; // calibration
+
+				// circuit equation to get us back to voltage
 				// telem * 5.12 / 2^14 * 11.07 / 1.07
 				telem = ( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) * 11.07f / 1.07f;
-				cout << "VoltageTelem: " << telem << endl;
+				// cout << ", VoltageTelem: " << telem;
 				
 				if( first_V )
 				{
 					first_V = false;
-					for( unsigned ix = 0; ix < sizeof(VbattArry_) / sizeof( VbattArry_[ 0 ] ); ix++ )
-						VbattArry_[ ix ] = telem;
+					Vbatt = telem;
+					// for( unsigned ix = 0; ix < sizeof(VbattArry_) / sizeof( VbattArry_[ 0 ] ); ix++ )
+					// 	VbattArry_[ ix ] = telem;					
 				}
 
-				VbattArry_[ idx++ ] = telem;
-				idx &= ArraySz;
+				// VbattArry_[ idx++ ] = telem;
+				// idx &= ArraySz;
 				
-				Vbatt = std::accumulate( VbattArry_.begin(), VbattArry_.end(), 0.0f ) / static_cast< float >(ArraySz);
+				Vbatt += ( telem - Vbatt) / 8.0f;
 				cout << "VoltageAvg: " << Vbatt << endl;
 			}
 			break;
@@ -186,7 +192,7 @@ void Motors::tickA2D( void *myObjV )
 	}
 
 	// increment to the next telemetry value 
-	if( myObj->telemIdx_++ > 4 )
+	if( ++myObj->telemIdx_ > 4 )
 		myObj->telemIdx_ = 0;
 
 }
