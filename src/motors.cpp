@@ -15,12 +15,11 @@ float targetSpeed_A_, targetSpeed_B_;
 float currentSpeed_A_, currentSpeed_B_;
 
 // telemetry 
-std::array <float, 8> VbattArry_;		// Input Voltage array
-float Vbatt;							// Input Voltage
-float AmpTotalArry_[ 8 ], AmpTotal;		// Total
-float AmpMtrLArry_[ 8 ], AmpMtrL; 		// Left
-float AmpMtrRArry_[ 8 ], AmpMtrR; 		// Right
-float AmpMtrCtrArry_[ 8 ], AmpMtrCtr;	// Cutter 
+float Vbatt;		// Input Voltage
+float AmpTotal;		// Total
+float AmpMtrL; 		// Left
+float AmpMtrR; 		// Right
+float AmpMtrCtr;	// Cutter 
 
 #define ArraySz	( sizeof( VbattArry_ ) / sizeof( VbattArry_[ 0 ] ) )
 
@@ -125,68 +124,96 @@ void Motors::tickA2D( void *myObjV )
 	switch( myObj->telemIdx_ )
 	{
 		case TLM_TOTAL_AMPS:
-			if( first_LA )
-			{
-				first_LA = false;
-				for( unsigned idx = 0; idx < sizeof(AmpMtrLArry_) / sizeof( AmpMtrLArry_[ 0 ] ); idx++ )
-					AmpMtrLArry_[ idx ] = telem;
-			}
-			cout << "Total Current: " << telem << endl;
-			break;
-		case TLM_LEFT_AMPS:
-			if( first_RA )
-			{
-				first_RA = false;
-				for( unsigned idx = 0; idx < sizeof(AmpMtrRArry_) / sizeof( AmpMtrRArry_[ 0 ] ); idx++ )
-					AmpMtrRArry_[ idx ] = telem;
-			}
-			cout << "Left Current: " << telem << endl;
-			break;
-		case TLM_RIGHT_AMPS:
-			if( first_CA )
-			{
-				first_CA = false;
-				for( unsigned idx = 0; idx < sizeof(AmpMtrCtrArry_) / sizeof( AmpMtrCtrArry_[ 0 ] ); idx++ )
-					AmpMtrCtrArry_[ idx ] = telem;
-			}
-			cout << "Right Current: " << telem << endl;
-			break;
-		case TLM_CUTR_AMPS:
+			cout << "PreTelem: " << telem << " ,";
+			// calibration
+			// TODO
+
+			// circuit equation to get us back to voltage
+			// TODO
+
 			if( first_TA )
 			{
 				first_TA = false;
-				for( unsigned idx = 0; idx < sizeof(AmpTotalArry_) / sizeof( AmpTotalArry_[ 0 ] ); idx++ )
-					AmpTotalArry_[ idx ] = telem;
+				AmpTotal = telem;
 			}
-			cout << "Cutter Current: " << telem << endl;
+			AmpTotal += ( telem - AmpTotal) / 8.0f;
+			cout << "Total Current: " << AmpTotal << endl;
 			break;
-		case TLM_VOLTS_AMPS:
+
+		case TLM_LEFT_AMPS:
+			cout << "PreTelem: " << telem << " ,";
+			// calibration
+			// TODO
+
+			// circuit equation to get us back to voltage
+			// TODO
+
+			if( first_LA )
 			{
-				// static unsigned idx = 0;
-
-				// cout << "PreTelem: " << telem;
-				telem = telem * 1.06208566323f; // calibration
-
-				// circuit equation to get us back to voltage
-				// telem * 5.12 / 2^14 * 11.07 / 1.07
-				telem = ( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) * 11.07f / 1.07f;
-				// cout << ", VoltageTelem: " << telem;
-				
-				if( first_V )
-				{
-					first_V = false;
-					Vbatt = telem;
-					// for( unsigned ix = 0; ix < sizeof(VbattArry_) / sizeof( VbattArry_[ 0 ] ); ix++ )
-					// 	VbattArry_[ ix ] = telem;					
-				}
-
-				// VbattArry_[ idx++ ] = telem;
-				// idx &= ArraySz;
-				
-				Vbatt += ( telem - Vbatt) / 8.0f;
-				cout << "VoltageAvg: " << Vbatt << endl;
+				first_LA = false;
+				AmpMtrL = telem;
 			}
+			AmpMtrL += ( telem - AmpMtrL) / 8.0f;
+			cout << "Left Current: " << AmpMtrL << endl;
 			break;
+
+		case TLM_RIGHT_AMPS:
+			cout << "PreTelem: " << telem << " ,";
+			// calibration
+			// TODO
+
+			// circuit equation to get us back to voltage
+			// TODO
+
+			if( first_RA )
+			{
+				first_RA = false;
+				AmpMtrR = telem;
+			}
+			AmpMtrR += ( telem - AmpMtrR) / 8.0f;
+
+			cout << "Right Current: " << AmpMtrR << endl;
+			break;
+
+		case TLM_CUTR_AMPS:
+			cout << "PreTelem: " << telem << " ,";
+			// calibration
+			// TODO
+
+			// circuit equation to get us back to voltage
+			// TODO
+
+			if( first_CA )
+			{
+				first_CA = false;
+				AmpMtrCtr = telem;
+			}
+			AmpMtrCtr += ( telem - AmpMtrCtr) / 8.0f;
+
+			cout << "Cutter Current: " << AmpMtrCtr << endl;
+			break;
+
+		case TLM_VOLTS_AMPS:
+			
+			// cout << "PreTelem: " << telem;
+			telem = telem * 1.06208566323f; // calibration
+
+			// circuit equation to get us back to voltage
+			// telem * 5.12 / 2^14 * 11.07 / 1.07
+			telem = ( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) * 11.07f / 1.07f;
+			// cout << ", VoltageTelem: " << telem;
+			
+			if( first_V )
+			{
+				first_V = false;
+				Vbatt = telem;					
+			}
+			
+			Vbatt += ( telem - Vbatt) / 8.0f;
+			cout << "VoltageAvg: " << Vbatt << endl;
+			
+			break;
+
 		default:
 			break;
 	}
