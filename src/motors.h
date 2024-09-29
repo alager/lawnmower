@@ -22,7 +22,7 @@ using std::abs;
 #define TLM_LEFT_AMPS		( 1 )
 #define TLM_RIGHT_AMPS		( 2 )
 #define TLM_CUTR_AMPS		( 3 )
-#define TLM_VOLTS_AMPS		( 4 )
+#define TLM_VOLTS			( 4 )
 
 #define TIMER_0				( 0 )
 #define MILLY_SECS_10		( 10 )
@@ -32,7 +32,7 @@ using std::abs;
 class Motors
 {
 public:
-
+	
 	// Constructor
 	Motors()
 	{

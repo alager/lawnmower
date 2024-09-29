@@ -121,15 +121,18 @@ void Motors::tickA2D( void *myObjV )
 	// read the A2D data
 	float telem = myObj->a2d_->update( myObj->telemIdx_ );
 
+	cout << std::fixed << std::setprecision(4);
+
 	switch( myObj->telemIdx_ )
 	{
 		case TLM_TOTAL_AMPS:
-			cout << "PreTelem: " << telem << " ,";
+			// cout << "PreTelem: " << telem << " ,";
 			// calibration
-			// TODO
+			telem -= 450.0f; // offset correction ** estimated **
 
 			// circuit equation to get us back to voltage
-			// TODO
+			// 55mV/A = 18.181818A/mV
+			telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
 
 			if( first_TA )
 			{
@@ -137,16 +140,17 @@ void Motors::tickA2D( void *myObjV )
 				AmpTotal = telem;
 			}
 			AmpTotal += ( telem - AmpTotal) / 8.0f;
-			cout << "Total Current: " << AmpTotal << endl;
+			cout << "Total Current:		" << AmpTotal << endl;
 			break;
 
 		case TLM_LEFT_AMPS:
-			cout << "PreTelem: " << telem << " ,";
+			// cout << "PreTelem: " << telem << " ,";
 			// calibration
-			// TODO
+			telem -= 130.0f - 3.7f; // offset correction
 
 			// circuit equation to get us back to voltage
-			// TODO
+			// 55mV/A = 18.181818A/mV
+			telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
 
 			if( first_LA )
 			{
@@ -154,16 +158,17 @@ void Motors::tickA2D( void *myObjV )
 				AmpMtrL = telem;
 			}
 			AmpMtrL += ( telem - AmpMtrL) / 8.0f;
-			cout << "Left Current: " << AmpMtrL << endl;
+			cout << "Left Current:		" << AmpMtrL << endl;
 			break;
 
 		case TLM_RIGHT_AMPS:
-			cout << "PreTelem: " << telem << " ,";
+			// cout << "PreTelem: " << telem << " ,";
 			// calibration
-			// TODO
+			telem -= 450.0f - 5.0f; // offset correction
 
 			// circuit equation to get us back to voltage
-			// TODO
+			// 55mV/A = 18.181818A/mV
+			telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
 
 			if( first_RA )
 			{
@@ -172,16 +177,17 @@ void Motors::tickA2D( void *myObjV )
 			}
 			AmpMtrR += ( telem - AmpMtrR) / 8.0f;
 
-			cout << "Right Current: " << AmpMtrR << endl;
+			cout << "Right Current:		" << AmpMtrR << endl;
 			break;
 
 		case TLM_CUTR_AMPS:
-			cout << "PreTelem: " << telem << " ,";
+			// cout << "PreTelem: " << telem << " ,";
 			// calibration
-			// TODO
+			telem -= 288.0f - 10.0f; // offset correction
 
 			// circuit equation to get us back to voltage
-			// TODO
+			// 55mV/A = 18.181818A/mV
+			telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
 
 			if( first_CA )
 			{
@@ -190,10 +196,10 @@ void Motors::tickA2D( void *myObjV )
 			}
 			AmpMtrCtr += ( telem - AmpMtrCtr) / 8.0f;
 
-			cout << "Cutter Current: " << AmpMtrCtr << endl;
+			cout << "Cutter Current:		" << AmpMtrCtr << endl;
 			break;
 
-		case TLM_VOLTS_AMPS:
+		case TLM_VOLTS:
 			
 			// cout << "PreTelem: " << telem;
 			telem = telem * 1.06208566323f; // calibration
@@ -210,7 +216,7 @@ void Motors::tickA2D( void *myObjV )
 			}
 			
 			Vbatt += ( telem - Vbatt) / 8.0f;
-			cout << "VoltageAvg: " << Vbatt << endl;
+			cout << "VoltageAvg:		" << Vbatt << endl;
 			
 			break;
 
