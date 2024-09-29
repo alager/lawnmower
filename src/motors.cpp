@@ -128,7 +128,7 @@ void Motors::tickA2D( void *myObjV )
 		case TLM_TOTAL_AMPS:
 			// cout << "PreTelem: " << telem << " ,";
 			// calibration
-			telem -= 450.0f; // offset correction ** estimated **
+			telem -= 450.0f + 32.0f; // offset correction ** estimated **
 
 			// circuit equation to get us back to voltage
 			// 55mV/A = 18.181818A/mV
@@ -146,7 +146,7 @@ void Motors::tickA2D( void *myObjV )
 		case TLM_LEFT_AMPS:
 			// cout << "PreTelem: " << telem << " ,";
 			// calibration
-			telem -= 130.0f - 3.7f; // offset correction
+			telem -= 130.0f + 5.0f; // offset correction
 
 			// circuit equation to get us back to voltage
 			// 55mV/A = 18.181818A/mV
@@ -164,7 +164,7 @@ void Motors::tickA2D( void *myObjV )
 		case TLM_RIGHT_AMPS:
 			// cout << "PreTelem: " << telem << " ,";
 			// calibration
-			telem -= 450.0f - 5.0f; // offset correction
+			telem -= 450.0f + 5.0f; // offset correction
 
 			// circuit equation to get us back to voltage
 			// 55mV/A = 18.181818A/mV
@@ -183,7 +183,7 @@ void Motors::tickA2D( void *myObjV )
 		case TLM_CUTR_AMPS:
 			// cout << "PreTelem: " << telem << " ,";
 			// calibration
-			telem -= 288.0f - 10.0f; // offset correction
+			telem -= 288.0f - 2.0f; // offset correction
 
 			// circuit equation to get us back to voltage
 			// 55mV/A = 18.181818A/mV
