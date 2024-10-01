@@ -6,6 +6,9 @@ using std::abs;
 #include "d2a.h"
 #include "a2d.h"
 
+#define A2D_ENABLE			false
+#define DAC_ENABLE			true
+
 // Feedback gpio inputs
 #define FEEDBACK_LEFT_MTR	( 5 )
 #define FEEDBACK_RIGHT_MTR	( 2 )
@@ -41,11 +44,15 @@ public:
 			throw std::runtime_error( "failed to construct: GPIOInit" );
 
 		
-
+		#if A2D_ENABLE
 		// create a a2d object
 		a2d_ = new A2d();
+		#endif
+
+		#if DAC_ENABLE
 		// get the private d2a object to control the motors
 		d2a_= new D2a();
+		#endif
 
 		// setup the feedback inputs
 		gpioSetMode( FEEDBACK_LEFT_MTR, PI_INPUT);

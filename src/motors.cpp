@@ -34,12 +34,16 @@ void Motors::init( void )
 
 	g_mask = ( 1 << FEEDBACK_LEFT_MTR | 1 << FEEDBACK_RIGHT_MTR | 1 << FEEDBACK_CTR_MTR );
 
+	#if DAC_ENABLE
 	// configure a callback for gpio changes based on the g_mask
 	gpioSetGetSamplesFuncEx( Motors::internalTick, g_mask, this );
 	cout << "motor feedback configured" << endl;
-
+	#endif
+	
+	#if A2D_ENABLE
 	// configure a call back to happen every 100ms for the a2d
 	gpioSetTimerFuncEx( TIMER_0, MILLY_SECS_10, Motors::tickA2D, this );
+	#endif
 }
 
 
@@ -51,7 +55,8 @@ void Motors::init( void )
 // F = RPM
 // N = number of poles in the motor
 // P = freq. in Hz
-#define POLES	( 8 )
+#define POLES			( 8 )
+#define RAMP_RATE		( 8.0f )
 void Motors::tick( Motors *myObj )
 {
 	float perSec;
@@ -81,7 +86,7 @@ void Motors::tick( Motors *myObj )
 		float delta = targetSpeed_A_ - currentSpeed_A_;
 
 		if( abs( delta ) > 2.0f )
-			currentSpeed_A_ += delta / 8.0f;
+			currentSpeed_A_ += delta / RAMP_RATE;
 		else
 			currentSpeed_A_ = targetSpeed_A_;
 
@@ -96,7 +101,7 @@ cout << "CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
 		float delta = targetSpeed_B_ - currentSpeed_B_;
 
 		if( abs( delta ) > 2.0f )
-			currentSpeed_B_ += delta / 8.0f;
+			currentSpeed_B_ += delta / RAMP_RATE;
 		else
 			currentSpeed_B_ = targetSpeed_B_;
 
@@ -121,12 +126,11 @@ void Motors::tickA2D( void *myObjV )
 	// read the A2D data
 	float telem = myObj->a2d_->update( myObj->telemIdx_ );
 
-	cout << std::fixed << std::setprecision(4);
+	// cout << std::fixed << std::setprecision(4);
 
 	switch( myObj->telemIdx_ )
 	{
 		case TLM_TOTAL_AMPS:
-			// cout << "PreTelem: " << telem << " ,";
 			// calibration
 			telem -= 450.0f + 32.0f; // offset correction ** estimated **
 
@@ -144,7 +148,6 @@ void Motors::tickA2D( void *myObjV )
 			break;
 
 		case TLM_LEFT_AMPS:
-			// cout << "PreTelem: " << telem << " ,";
 			// calibration
 			telem -= 130.0f + 5.0f; // offset correction
 
@@ -162,7 +165,6 @@ void Motors::tickA2D( void *myObjV )
 			break;
 
 		case TLM_RIGHT_AMPS:
-			// cout << "PreTelem: " << telem << " ,";
 			// calibration
 			telem -= 450.0f + 5.0f; // offset correction
 
@@ -176,12 +178,10 @@ void Motors::tickA2D( void *myObjV )
 				AmpMtrR = telem;
 			}
 			AmpMtrR += ( telem - AmpMtrR) / 8.0f;
-
 			cout << "Right Current:		" << AmpMtrR << endl;
 			break;
 
 		case TLM_CUTR_AMPS:
-			// cout << "PreTelem: " << telem << " ,";
 			// calibration
 			telem -= 288.0f - 2.0f; // offset correction
 
@@ -196,12 +196,10 @@ void Motors::tickA2D( void *myObjV )
 			}
 			AmpMtrCtr += ( telem - AmpMtrCtr) / 8.0f;
 
-			cout << "Cutter Current:		" << AmpMtrCtr << endl;
+			// cout << "Cutter Current:		" << AmpMtrCtr << endl;
 			break;
 
 		case TLM_VOLTS:
-			
-			// cout << "PreTelem: " << telem;
 			telem = telem * 1.06208566323f; // calibration
 
 			// circuit equation to get us back to voltage
@@ -217,7 +215,6 @@ void Motors::tickA2D( void *myObjV )
 			
 			Vbatt += ( telem - Vbatt) / 8.0f;
 			cout << "VoltageAvg:		" << Vbatt << endl;
-			
 			break;
 
 		default:
@@ -294,9 +291,6 @@ void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *my
 			}
 		}
 	}
-
-	// get readings from the A2D
-	tickA2D( (Motors*)(myObj) );
 }
 
 
