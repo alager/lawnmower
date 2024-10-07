@@ -21,7 +21,7 @@ float AmpMtrL; 		// Left
 float AmpMtrR; 		// Right
 float AmpMtrCtr;	// Cutter 
 
-#define ArraySz	( sizeof( VbattArry_ ) / sizeof( VbattArry_[ 0 ] ) )
+// #define ArraySz	( sizeof( VbattArry_ ) / sizeof( VbattArry_[ 0 ] ) )
 
 
 void Motors::init( void )
@@ -30,24 +30,39 @@ void Motors::init( void )
 	// these are the gpio to track
 	g_gpio[ g_num_gpios++ ] = FEEDBACK_LEFT_MTR;
 	g_gpio[ g_num_gpios++ ] = FEEDBACK_RIGHT_MTR;
-	g_gpio[ g_num_gpios++ ] = FEEDBACK_CTR_MTR;
+	// g_gpio[ g_num_gpios++ ] = FEEDBACK_CTR_MTR;
 
-	g_mask = ( 1 << FEEDBACK_LEFT_MTR | 1 << FEEDBACK_RIGHT_MTR | 1 << FEEDBACK_CTR_MTR );
+	g_mask = ( 1 << FEEDBACK_LEFT_MTR | 1 << FEEDBACK_RIGHT_MTR /*| 1 << FEEDBACK_CTR_MTR */ );
 
 	#if DAC_ENABLE
-	// configure a callback for gpio changes based on the g_mask
-	gpioSetGetSamplesFuncEx( Motors::internalTick, g_mask, this );
-	cout << "motor feedback configured" << endl;
+		// configure a callback for gpio changes based on the g_mask
+		gpioSetGetSamplesFuncEx( Motors::internalTick, g_mask, this );
+		cout << "motor feedback configured" << endl;
 	#endif
 	
+	// configure a call back to happen every 100ms for A2D and Motor speed
+	gpioSetTimerFuncEx( TIMER_0, MILLY_SECS_10, Motors::tickCallback, this );
+	
+}
+
+void Motors::tickCallback( void *myObjV )
+{
+	static u_int16_t speedCount = 0;
+
 	#if A2D_ENABLE
-	// configure a call back to happen every 100ms for the a2d
-	gpioSetTimerFuncEx( TIMER_0, MILLY_SECS_10, Motors::tickA2D, this );
+		tickA2D( static_cast< Motors* >( myObjV ) );
+	#endif
+
+	#if DAC_ENABLE
+		if( speedCount++ > 50 )
+		{
+			speedCount = 0;
+			speedTick( static_cast< Motors* >( myObjV ) );
+		}
 	#endif
 }
 
-
-// This tick() is called about every ~500ms
+// This gpioTick() is called about every ~500ms
 // maintenance function to keep the motors going
 // at the specified speed.
 //  F=2*P/N*60
@@ -57,13 +72,49 @@ void Motors::init( void )
 // P = freq. in Hz
 #define POLES			( 8 )
 #define RAMP_RATE		( 8.0f )
-void Motors::tick( Motors *myObj )
+void Motors::speedTick( Motors *myObj )
+{
+	// update current speed towards target speed
+	if( currentSpeed_A_ != targetSpeed_A_ )
+	{
+		float delta = targetSpeed_A_ - currentSpeed_A_;
+
+		if( abs( delta ) > 2.0f )
+			currentSpeed_A_ += delta / RAMP_RATE;
+		else
+			currentSpeed_A_ = targetSpeed_A_;
+
+
+		cout << "A CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
+
+		myObj->d2a_->set('a', currentSpeed_A_ );
+	}
+
+	if( currentSpeed_B_ != targetSpeed_B_ )
+	{
+		float delta = targetSpeed_B_ - currentSpeed_B_;
+
+		if( abs( delta ) > 2.0f )
+			currentSpeed_B_ += delta / RAMP_RATE;
+		else
+			currentSpeed_B_ = targetSpeed_B_;
+
+		cout << "B CSpeed: " << currentSpeed_B_ << ", TSpeed: " << targetSpeed_B_ << endl;
+		myObj->d2a_->set('b', currentSpeed_B_ );
+	}
+}
+
+
+
+void Motors::gpioTick( Motors *myObj )
 {
 	float perSec;
 
+	( void ) myObj;
+
 	perSec = 10.0 / OPT_R_DEF;
 
-	cout << "tick: ";
+	cout << "gpioTick: ";
 
 	if (!g_update_counts)
 	{
@@ -79,40 +130,78 @@ void Motors::tick( Motors *myObj )
 		g_update_counts = 1;
 	}
 	cout << "CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
-
-	// update current speed towards target speed
-	if( currentSpeed_A_ != targetSpeed_A_ )
-	{
-		float delta = targetSpeed_A_ - currentSpeed_A_;
-
-		if( abs( delta ) > 2.0f )
-			currentSpeed_A_ += delta / RAMP_RATE;
-		else
-			currentSpeed_A_ = targetSpeed_A_;
-
-
-cout << "CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
-
-		myObj->d2a_->set('a', currentSpeed_A_ );
-	}
-
-	if( currentSpeed_B_ != targetSpeed_B_ )
-	{
-		float delta = targetSpeed_B_ - currentSpeed_B_;
-
-		if( abs( delta ) > 2.0f )
-			currentSpeed_B_ += delta / RAMP_RATE;
-		else
-			currentSpeed_B_ = targetSpeed_B_;
-
-cout << "CSpeed: " << currentSpeed_B_ << ", TSpeed: " << targetSpeed_B_ << endl;
-		myObj->d2a_->set('b', currentSpeed_B_ );
-	}
-
 }
 
+
+// The intrnal tick call back run by Pigpio.  It gets called based on gpio changes
+void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *myObj )
+{
+	static int inited = 0;
+
+	static uint32_t lastLevel;
+	static uint32_t lastReportTick;
+	static int count[MAX_GPIOS];
+
+	uint32_t high, level, tickDiff;
+	int i, g;
+
+	
+	if (!inited)
+	{
+		cout << "\n\n\n***Initing***" << endl;
+		cout << "g_num_gpios: " << g_num_gpios << endl;
+		
+		inited = 1;
+
+		lastLevel = samples[0].level;
+		lastReportTick = samples[0].tick;
+
+		for (i=0; i<g_num_gpios; i++)
+		{
+			count[i] = 0;
+		}
+	}
+
+	// this loop handles reading in the GPIO pulses in an efficient manner
+	// instead of an interrupt for each one.
+	for (int s = 0; s < numSamples; s++)
+	{
+		tickDiff = samples[s].tick - lastReportTick;
+		if (tickDiff >= reportInterval)
+		{
+			lastReportTick = samples[s].tick;
+
+			if (g_update_counts)
+			{
+				for (i=0; i < g_num_gpios; i++)
+					g_pulse_count[i] = count[i];
+				
+				g_update_counts = 0;
+				gpioTick( (Motors*)(myObj) );
+			}
+
+			for (i=0; i < g_num_gpios; i++) count[i] = 0;
+		}
+
+		level = samples[s].level;
+		high = ( (lastLevel ^ level) & g_mask) & level;
+		lastLevel = level;
+		
+		/* only interested in low to high */
+		if (high)
+		{
+			for ( g=0; g<g_num_gpios; g++ )
+			{
+				if ( high & ( 1 << g_gpio[g] ) ) 
+					count[g]++;
+			}
+		}
+	}
+}
+
+
 // gets called ~10ms by the pigpio timer
-void Motors::tickA2D( void *myObjV )
+void Motors::tickA2D( Motors *myObj )
 {
 	static bool first_LA = true;
 	static bool first_RA = true;
@@ -121,7 +210,7 @@ void Motors::tickA2D( void *myObjV )
 	static bool first_V = true;
 
 	// cast it from void to Motors type for the rest of the code
-	Motors *myObj = static_cast< Motors* >( myObjV );
+	// Motors *myObj = static_cast< Motors* >( myObjV );
 
 	// read the A2D data
 	float telem = myObj->a2d_->update( myObj->telemIdx_ );
@@ -227,72 +316,6 @@ void Motors::tickA2D( void *myObjV )
 
 }
 
-// The intrnal tick call back run by Pigpio.  It gets called based on gpio changes
-void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *myObj )
-{
-	static int inited = 0;
-
-   static uint32_t lastLevel;
-   static uint32_t lastReportTick;
-   static int count[MAX_GPIOS];
-
-   uint32_t high, level, tickDiff;
-   int i, g;
-
-	
-	if (!inited)
-	{
-		cout << "\n\n\n***Initing***" << endl;
-		cout << "g_num_gpios: " << g_num_gpios << endl;
-		
-		inited = 1;
-
-		lastLevel = samples[0].level;
-		lastReportTick = samples[0].tick;
-
-		for (i=0; i<g_num_gpios; i++)
-		{
-			count[i] = 0;
-		}
-	}
-
-	// this loop handles reading in the GPIO pulses in an efficient manner
-	// instead of an interrupt for each one.
-	for (int s = 0; s < numSamples; s++)
-	{
-		tickDiff = samples[s].tick - lastReportTick;
-		if (tickDiff >= reportInterval)
-		{
-			lastReportTick = samples[s].tick;
-
-			if (g_update_counts)
-			{
-				for (i=0; i < g_num_gpios; i++)
-					g_pulse_count[i] = count[i];
-				
-				g_update_counts = 0;
-				tick( (Motors*)(myObj) );
-			}
-
-			for (i=0; i < g_num_gpios; i++) count[i] = 0;
-		}
-
-		level = samples[s].level;
-		high = ( (lastLevel ^ level) & g_mask) & level;
-		lastLevel = level;
-		
-		/* only interested in low to high */
-		if (high)
-		{
-			for ( g=0; g<g_num_gpios; g++ )
-			{
-				if ( high & ( 1 << g_gpio[g] ) ) 
-					count[g]++;
-			}
-		}
-	}
-}
-
 
 // set the forward speed (0-100%)
 // minimum of 16% to get motor motion
@@ -310,6 +333,11 @@ void Motors::forward( float speed )
 	{
 		currentSpeed_A_ = MIN_SPEED;
 		d2a_->set( 'a', MIN_SPEED );
+	}
+
+	if( currentSpeed_B_ < MIN_SPEED )
+	{
+		currentSpeed_B_ = MIN_SPEED;
 		d2a_->set( 'b', MIN_SPEED );
 	}
 }
