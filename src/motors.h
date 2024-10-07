@@ -6,7 +6,7 @@ using std::abs;
 #include "d2a.h"
 #include "a2d.h"
 
-#define A2D_ENABLE			false
+#define A2D_ENABLE			true
 #define DAC_ENABLE			true
 
 // Feedback gpio inputs
@@ -77,8 +77,10 @@ public:
 		estop();
 	}
 
-	static void tick( Motors *myObj );
-	static void tickA2D( void *myObj );
+	static void speedTick( Motors *myObj );
+	static void tickCallback( void *myObjV );
+	static void gpioTick( Motors *myObj );
+	static void tickA2D( Motors *myObj );
 
 	static void internalTick( const gpioSample_t *samples, int numSamples, void *myObj );
 
