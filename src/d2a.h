@@ -71,20 +71,20 @@ public:
 		spi_ = new Spi( DAC_SPI_CHANNEL, SPI_MODE_1 );
 
 		// set output range
-		reg__ = 0;
+		//          0			( 1 << 19 )		( 0x04 << 16 )		2
 		reg__ = (DAC_WRITE) | (REG_OUTPUT_RANGE) | (DAC_ALL) | (RANGE_10_8);
 		write( reg__ );
 
 		// set the power control power up a,b,c and ref
 		// must delay 10us before doing more with the dac after this command
-		reg__ = 0;
+		// 			0		( 2 << 19 )			0		  0x17
 		reg__ = DAC_WRITE |  REG_POWER_CTRL | DAC_NONE | 0x0017;
 		write( reg__ );
 		usleep( 10 );
 
 		// clear all the dac outputs to 0.
 		// the data 0x5555 is a don't care value
-		reg__ = 0;
+		//			0	   ( 3 << 19 ) ( 0x04 << 16 ) 0x5555
 		reg__ = DAC_WRITE |  REG_CTRL | DAC_ALL | 0x5555;
 		write( reg__ );
 
