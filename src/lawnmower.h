@@ -7,6 +7,7 @@ using std::bind;
 #include <fstream>
 #include <csignal>	// to catch sigINT
 #include <unistd.h>	// for sleep()
+#include "crow_all.h"
 
 
 
@@ -21,3 +22,4 @@ using std::bind;
 
 
 void sigINT_handler( int signum);
+void msleep( uint16_t time );
