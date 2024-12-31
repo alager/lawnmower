@@ -1,7 +1,14 @@
 #include "lawnmower.h"
 
+// for simdjson debugging
+#define _DEBUG
+
 // create a global motors object
 Motors* mtr = new Motors();
+ondemand::parser parser;
+ondemand::document doc;
+std::atomic<bool> docReady{false};
+double magX, magY;
 
 int main() 
 {
@@ -16,28 +23,7 @@ int main()
 	// outfile.close();
 
 	// spawn a thread for the websocket
-	crow::SimpleApp app;
-
-    CROW_ROUTE(app, "/")
-        .websocket()
-        .onopen([&](crow::websocket::connection& conn){
-                CROW_LOG_INFO << "new websocket connection";
-                })
-        .onclose([&](crow::websocket::connection& conn, const std::string& reason){
-                CROW_LOG_INFO << "websocket connection closed: " << reason;
-                })
-        .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary){
-                    std::cout << "Received message: " << data << "\n";
-                    if (is_binary)
-                        conn.send_binary(data);
-                    else
-                        conn.send_text(data);
-                });
-
-    app.port(40800)
-        .multithreaded()
-        .run();
-	// end of the websocket thread
+	std::thread wsThread( spawnWebsocketThread );
 
 	// Set up the signal handler
 	signal(SIGINT, sigINT_handler);
@@ -55,10 +41,21 @@ int main()
 	
 	// mtr->estop( );
 
-while(1);
+	while(1)
+	{
+		// check if there is new data to read
+		if( docReady.load() )
+		{
+			cout << "X: " << magX << " ";
+			cout << "Y: " << magY << endl;
+
+			docReady.store( false );
+		}
+	}
 
 	// this is the end
 	gpioTerminate();
+	// wsThread.join();	// wait for CROW to finish before exiting
 	return 0;
 }
 
@@ -68,6 +65,7 @@ while(1);
 void sigINT_handler( int signum )
 {
 	delete mtr;			// invoke destructor
+	std::terminate();
 	exit( signum );		// exit program
 }
 
@@ -75,4 +73,45 @@ void sigINT_handler( int signum )
 void msleep( uint16_t time )
 {
 	std::this_thread::sleep_for(std::chrono::milliseconds( time ));
+}
+
+void spawnWebsocketThread( void )
+{
+	crow::SimpleApp app;
+
+    CROW_ROUTE(app, "/")
+        .websocket()
+        .onopen([&](crow::websocket::connection& conn){
+				(void) conn;
+                CROW_LOG_INFO << "new websocket connection";
+                })
+        .onclose([&](crow::websocket::connection& conn, const std::string& reason){
+				(void) conn;
+                CROW_LOG_INFO << "websocket connection closed: " << reason;
+                })
+        .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary){
+				std::cout << "Received message: " << data << "\n";
+				if (is_binary)
+					conn.send_binary(data);
+				else
+				{
+					simdjson::padded_string my_padded_data( data );
+					// conn.send_text( data );
+					doc = parser.iterate(my_padded_data);
+
+					if( !docReady.load() )
+					{
+						magX = doc["X"];
+						magY = doc["Y"];
+
+						docReady.store( true );
+					}
+				}
+					
+                });
+
+    app.port(40800)
+        //.multithreaded()
+        .run();
+	// end of the websocket thread
 }
