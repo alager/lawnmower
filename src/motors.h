@@ -1,10 +1,16 @@
 #include <cmath>
 using std::abs;
 #include <numeric>
+#include <chrono>
+#include <thread>
 #include <pigpio.h>
 
 #include "d2a.h"
 #include "a2d.h"
+
+// debug outputs
+#define DEBUG_VOLTAGE		false
+#define DEBUG_CURRENT		false
 
 #define A2D_ENABLE			true
 #define DAC_ENABLE			true
@@ -19,6 +25,9 @@ using std::abs;
 #define INPUT_GLITCH_FLTR	( 1 )
 
 #define MIN_SPEED			( 16.0f )
+#define MIN_SPEED_R			( 18.0f )
+#define MIN_SPEED_L			( 16.0f )
+
 #define MAX_SPEED			( 100.0f )
 
 #define TLM_TOTAL_AMPS		( 0 )
@@ -88,6 +97,7 @@ public:
 	void forward( float speed );
 	void estop( void );
 	void motorEnable( bool enable );
+	// void beep( uint16_t time );
 
 
 private:

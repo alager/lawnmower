@@ -71,7 +71,9 @@ void Motors::tickCallback( void *myObjV )
 // N = number of poles in the motor
 // P = freq. in Hz
 #define POLES			( 8 )
-#define RAMP_RATE		( 8.0f )
+
+// larger number make longer ramp
+#define RAMP_RATE		( 4.0f )
 void Motors::speedTick( Motors *myObj )
 {
 	// update current speed towards target speed
@@ -233,7 +235,9 @@ void Motors::tickA2D( Motors *myObj )
 				AmpTotal = telem;
 			}
 			AmpTotal += ( telem - AmpTotal) / 8.0f;
-			cout << "Total Current:		" << AmpTotal << endl;
+			#if DEBUG_CURRENT
+			 cout << "Total Current:		" << AmpTotal << endl;
+			#endif
 			break;
 
 		case TLM_LEFT_AMPS:
@@ -250,7 +254,9 @@ void Motors::tickA2D( Motors *myObj )
 				AmpMtrL = telem;
 			}
 			AmpMtrL += ( telem - AmpMtrL) / 8.0f;
-			cout << "Left Current:		" << AmpMtrL << endl;
+			#if DEBUG_CURRENT
+			 cout << "Left Current:		" << AmpMtrL << endl;
+			#endif
 			break;
 
 		case TLM_RIGHT_AMPS:
@@ -267,7 +273,9 @@ void Motors::tickA2D( Motors *myObj )
 				AmpMtrR = telem;
 			}
 			AmpMtrR += ( telem - AmpMtrR) / 8.0f;
-			cout << "Right Current:		" << AmpMtrR << endl;
+			#if DEBUG_CURRENT
+			 cout << "Right Current:		" << AmpMtrR << endl;
+			#endif
 			break;
 
 		case TLM_CUTR_AMPS:
@@ -303,7 +311,9 @@ void Motors::tickA2D( Motors *myObj )
 			}
 			
 			Vbatt += ( telem - Vbatt) / 8.0f;
-			cout << "VoltageAvg:		" << Vbatt << endl;
+			#if DEBUG_VOLTAGE
+			 cout << "DEBUG: VoltageAvg:		" << Vbatt << endl;
+			#endif
 			break;
 
 		default:
@@ -329,16 +339,18 @@ void Motors::forward( float speed )
 
 	targetSpeed_A_ = targetSpeed_B_ = speed;
 
+	// left
 	if( currentSpeed_A_ < MIN_SPEED )
 	{
 		currentSpeed_A_ = MIN_SPEED;
 		d2a_->set( 'a', MIN_SPEED );
 	}
 
-	if( currentSpeed_B_ < MIN_SPEED )
+	// right
+	if( currentSpeed_B_ < MIN_SPEED_R )
 	{
-		currentSpeed_B_ = MIN_SPEED;
-		d2a_->set( 'b', MIN_SPEED );
+		currentSpeed_B_ = MIN_SPEED_R;
+		d2a_->set( 'b', MIN_SPEED_R );
 	}
 }
 
