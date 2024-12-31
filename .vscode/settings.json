@@ -35,7 +35,9 @@
   ],
   "C_Cpp_Runner.enableWarnings": true,
   "C_Cpp_Runner.warningsAsError": false,
-  "C_Cpp_Runner.compilerArgs": [],
+  "C_Cpp_Runner.compilerArgs": [
+    "-fcompare-debug-second"
+  ],
   "C_Cpp_Runner.linkerArgs": [
     "-lpigpio",
     "-lrt",
@@ -113,6 +115,7 @@
     "csignal": "cpp",
     "ctime": "cpp",
     "iomanip": "cpp",
-    "sstream": "cpp"
+    "sstream": "cpp",
+    "chrono": "cpp"
   }
 }
