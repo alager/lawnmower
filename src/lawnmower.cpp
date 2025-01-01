@@ -97,13 +97,19 @@ void spawnWebsocketThread( void )
 				{
 					simdjson::padded_string my_padded_data( data );
 					// conn.send_text( data );
-					doc = parser.iterate(my_padded_data);
+					auto error = parser.iterate(my_padded_data).get( doc );
+					if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
+
 
 					if( !docReady.load() )
 					{
-						magX = doc["X"];
-						magY = doc["Y"];
+						error = doc["X"].get(magX);
+						if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
 
+						error = doc["Y"].get(magY);
+						if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
+
+						// atomic shared variable to indicate data is ready
 						docReady.store( true );
 					}
 				}
