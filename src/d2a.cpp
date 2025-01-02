@@ -83,8 +83,8 @@ int D2a::set( char dac, float percent )
 	float voltage = percent2Voltage( percent );
 	uint32_t reg = voltage2reg( voltage );
 
-	// cout << "DAC: " << dac << ", percent: " << percent << endl;
-	// cout << "voltage: " << voltage << ", reg: " <<  reg << endl;
+	cout << "DAC: " << dac << ", percent: " << percent << endl;
+	cout << "voltage: " << voltage << ", reg: " <<  reg << endl;
 
 	if( dac == 'a' )
 		mydac = DAC_A;

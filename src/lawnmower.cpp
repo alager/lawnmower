@@ -7,7 +7,7 @@
 Motors* mtr = new Motors();
 ondemand::parser parser;
 ondemand::document doc;
-std::atomic<bool> docReady{false};
+std::atomic<bool> dataReady{false};
 double magX, magY;
 
 int main() 
@@ -44,12 +44,14 @@ int main()
 	while(1)
 	{
 		// check if there is new data to read
-		if( docReady.load() )
+		if( dataReady.load() )
 		{
-			cout << "X: " << magX << " ";
-			cout << "Y: " << magY << endl;
+			cout << "x: " << magX << " ";
+			cout << "y: " << magY << endl;
+			
+			mtr->forward( static_cast<float>(magY) );
 
-			docReady.store( false );
+			dataReady.store( false );
 		}
 	}
 
@@ -82,38 +84,54 @@ void spawnWebsocketThread( void )
     CROW_ROUTE(app, "/")
         .websocket()
         .onopen([&](crow::websocket::connection& conn){
-				(void) conn;
+				(void) conn; // quite the unused parameter warning
                 CROW_LOG_INFO << "new websocket connection";
                 })
         .onclose([&](crow::websocket::connection& conn, const std::string& reason){
-				(void) conn;
+				(void) conn; // quite the unused parameter warning
+
+				// the socket was closed, so set the controls to 0
+				magX = 0.0;
+				magY = 0.0;
+				// atomic shared variable to indicate data is ready
+				dataReady.store( true );
+
                 CROW_LOG_INFO << "websocket connection closed: " << reason;
                 })
         .onmessage([&](crow::websocket::connection& conn, const std::string& data, bool is_binary){
-				std::cout << "Received message: " << data << "\n";
+				// std::cout << "Received message: " << data << "\n";
 				if (is_binary)
-					conn.send_binary(data);
+					conn.send_binary(data); // echo binary data back
 				else
 				{
+					// it's a string...check if it's valid JSON
 					simdjson::padded_string my_padded_data( data );
 					// conn.send_text( data );
 					auto error = parser.iterate(my_padded_data).get( doc );
 					if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
 
 
-					if( !docReady.load() )
+					if( !dataReady.load() )
 					{
-						error = doc["X"].get(magX);
+						// look for the 'x' object and get its value
+						error = doc["x"].get(magX);
 						if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
 
-						error = doc["Y"].get(magY);
+						// look for the 'y' object and get its value
+						error = doc["y"].get(magY);
 						if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
 
 						// atomic shared variable to indicate data is ready
-						docReady.store( true );
+						dataReady.store( true );
+					}
+					else
+					{
+						// if we landed here, it was not a JSON string
+						return false;
 					}
 				}
-					
+					// the last part of the route handler, false will close the socket
+					return true;
                 });
 
     app.port(40800)
