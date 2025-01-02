@@ -81,6 +81,7 @@ class Joystick {
 			const maxDist = Math.min(diff.mag(), this.radius);
 			this.pos = this.origin.add(diff.normalize().mul(maxDist));
 
+			// update the Zero Based position
 			this.posZB.x = this.pos.x - this.origin.x;
 			this.posZB.y = this.origin.y - this.pos.y; 
 
