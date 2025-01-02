@@ -1,3 +1,29 @@
+let socket = new WebSocket("ws://192.168.86.46:40800/");
+
+socket.onopen = function(e) {
+  console.log("[open] Connection established");
+//   alert("Sending to server");
+//   socket.send("My name is John");
+};
+
+socket.onmessage = function(event) {
+  console.log(`[message] Data received from server: ${event.data}`);
+};
+
+socket.onclose = function(event) {
+  if (event.wasClean) {
+    console.log(`[close] Connection closed cleanly, code=${event.code} reason=${event.reason}`);
+  } else {
+    // e.g. server process killed or network down
+    // event.code is usually 1006 in this case
+    console.log('[close] Connection died');
+  }
+};
+
+socket.onerror = function(error) {
+  console.log(`[error]`);
+};
+
 // Create a canvas element and get its 2D drawing context
 const canvas = document.createElement('canvas'), context = canvas.getContext('2d');
 document.body.append(canvas);
@@ -30,3 +56,9 @@ setInterval(() => {
     //}
 
 }, 1000 / FPS); // Update every frame
+
+
+// send joystick position data every 100ms
+setInterval(() => {
+	socket.send( JSON.stringify( joysticks[LEFT].posZB ) );
+}, 100 );
