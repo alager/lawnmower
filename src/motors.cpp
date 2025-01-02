@@ -334,24 +334,27 @@ void Motors::forward( float speed )
 	// do range protections
 	if( speed > MAX_SPEED )
 		speed = MAX_SPEED;
+	if( speed < 5.0f )
+		speed = 0.0f;
+	else
 	if( speed < MIN_SPEED )
 		speed = MIN_SPEED;
 
 	targetSpeed_A_ = targetSpeed_B_ = speed;
 
 	// left
-	if( currentSpeed_A_ < MIN_SPEED )
-	{
-		currentSpeed_A_ = MIN_SPEED;
-		d2a_->set( 'a', MIN_SPEED );
-	}
+	// if( currentSpeed_A_ < MIN_SPEED )
+	// {
+	// 	currentSpeed_A_ = MIN_SPEED;
+	// 	d2a_->set( 'a', MIN_SPEED );
+	// }
 
-	// right
-	if( currentSpeed_B_ < MIN_SPEED_R )
-	{
-		currentSpeed_B_ = MIN_SPEED_R;
-		d2a_->set( 'b', MIN_SPEED_R );
-	}
+	// // right
+	// if( currentSpeed_B_ < MIN_SPEED_R )
+	// {
+	// 	currentSpeed_B_ = MIN_SPEED_R;
+	// 	d2a_->set( 'b', MIN_SPEED_R );
+	// }
 }
 
 
