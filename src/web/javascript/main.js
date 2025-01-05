@@ -60,5 +60,45 @@ setInterval(() => {
 
 // send joystick position data every 100ms
 setInterval(() => {
-	socket.send( JSON.stringify( joysticks[LEFT].posZB ) );
+	if( socket.readyState === socket.OPEN )
+	{
+		//socket.send( JSON.stringify( joysticks[LEFT].posZB ) );
+
+		// let myStr = "X: " + joysticks[LEFT].posZB.x + ", Y: " + joysticks[LEFT].posZB.y;
+		// console.log( myStr );
+
+		// scale the controls for human usablity
+		let position = {
+			x: 0,
+			y: 0,
+			left: 0,
+			right: 0
+		};
+		// position.x = 0.000001 * joysticks[LEFT].posZB.x ** 4 + .001 * joysticks[LEFT].posZB.x ** 2;// + 14;
+		// position.y = 0.000001 * joysticks[LEFT].posZB.y ** 4 + .001 * joysticks[LEFT].posZB.y ** 2;// + 14;
+
+		position.x = 0.000001 * joysticks[LEFT].posZB.x ** 3 + 0.001 * joysticks[LEFT].posZB.x ** 2;
+		// position.y = 0.0002 * joysticks[LEFT].posZB.y ** 3 + 0.001 * joysticks[LEFT].posZB.y ** 2;
+		position.y = 0.0001 * joysticks[LEFT].posZB.y ** 3;// + 0.001 * joysticks[LEFT].posZB.y ** 2;
+
+		if( joysticks[LEFT].posZB.y !== 0 )
+		{
+			position.left = position.right = position.y + 10;
+			if( joysticks[LEFT].posZB.x < 0 )
+				position.left = ( position.left > position.x ) ? ( position.left - position.x ) : 0;
+			else
+				position.right = ( position.right > position.x ) ? ( position.right - position.x ) : 0;
+		}
+
+		// myStr = "X: " + position.x + ", Y: " + position.y;
+		// let myStr = "X: " + joysticks[LEFT].posZB.x.toFixed(3) + ",X: " + position.x.toFixed(3);
+		// myStr += " Y: " + joysticks[LEFT].posZB.y.toFixed(3) + ",Y: " + position.y.toFixed(3);
+		
+		let myStr = "left: " + position.left.toFixed(3) + ", right: " + position.right.toFixed(3);
+		
+		console.log( myStr );
+
+		// send the drive value to the motors
+		socket.send( JSON.stringify(position));
+	}
 }, 100 );
