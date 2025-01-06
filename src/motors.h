@@ -94,7 +94,7 @@ public:
 	static void internalTick( const gpioSample_t *samples, int numSamples, void *myObj );
 
 	void init( void );
-	void forward( float speed );
+	void forward( float Lspeed, float Rspeed );
 	void estop( void );
 	void motorEnable( bool enable );
 	// void beep( uint16_t time );

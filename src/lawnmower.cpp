@@ -8,7 +8,7 @@ Motors* mtr = new Motors();
 ondemand::parser parser;
 ondemand::document doc;
 std::atomic<bool> dataReady{false};
-double magX, magY;
+double leftMotor, rightMotor;
 
 int main() 
 {
@@ -46,10 +46,10 @@ int main()
 		// check if there is new data to read
 		if( dataReady.load() )
 		{
-			cout << "x: " << magX << " ";
-			cout << "y: " << magY << endl;
+			cout << "left: " << leftMotor << " ";
+			cout << "right: " << rightMotor << endl;
 			
-			mtr->forward( static_cast<float>(magY) );
+			mtr->forward( static_cast<float>(rightMotor) );
 
 			dataReady.store( false );
 		}
@@ -91,8 +91,8 @@ void spawnWebsocketThread( void )
 				(void) conn; // quite the unused parameter warning
 
 				// the socket was closed, so set the controls to 0
-				magX = 0.0;
-				magY = 0.0;
+				leftMotor = 0.0;
+				rightMotor = 0.0;
 				// atomic shared variable to indicate data is ready
 				dataReady.store( true );
 
@@ -114,11 +114,11 @@ void spawnWebsocketThread( void )
 					if( !dataReady.load() )
 					{
 						// look for the 'x' object and get its value
-						error = doc["x"].get(magX);
+						error = doc["left"].get(leftMotor);
 						if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
 
 						// look for the 'y' object and get its value
-						error = doc["y"].get(magY);
+						error = doc["right"].get(rightMotor);
 						if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
 
 						// atomic shared variable to indicate data is ready

@@ -329,18 +329,28 @@ void Motors::tickA2D( Motors *myObj )
 
 // set the forward speed (0-100%)
 // minimum of 16% to get motor motion
-void Motors::forward( float speed )
+void Motors::forward( float Lspeed, float Rspeed )
 {
 	// do range protections
-	if( speed > MAX_SPEED )
-		speed = MAX_SPEED;
-	if( speed < 5.0f )
-		speed = 0.0f;
-	else
-	if( speed < MIN_SPEED )
-		speed = MIN_SPEED;
+	if( Lspeed > MAX_SPEED )
+		Lspeed = MAX_SPEED;
+	if( Rspeed > MAX_SPEED )
+		Rspeed = MAX_SPEED;
 
-	targetSpeed_A_ = targetSpeed_B_ = speed;
+	if( Lspeed < 5.0f )
+		Lspeed = 0.0f;
+	else
+	if( Lspeed < MIN_SPEED_L )
+		Lspeed = MIN_SPEED_L;
+
+	if( Rspeed < 5.0f )
+		Rspeed = 0.0f;
+	else
+	if( Rspeed < MIN_SPEED_R )
+		Rspeed = MIN_SPEED_R;
+
+	targetSpeed_A_ = Lspeed;
+	targetSpeed_B_ = Rspeed;
 
 	// left
 	// if( currentSpeed_A_ < MIN_SPEED )
