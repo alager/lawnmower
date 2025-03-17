@@ -86,9 +86,7 @@ void Motors::speedTick( Motors *myObj )
 		else
 			currentSpeed_A_ = targetSpeed_A_;
 
-
 		cout << "A CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
-
 		myObj->d2a_->set('a', currentSpeed_A_ );
 	}
 
@@ -110,11 +108,11 @@ void Motors::speedTick( Motors *myObj )
 
 void Motors::gpioTick( Motors *myObj )
 {
-	float perSec;
+	int perSec;
 
 	( void ) myObj;
 
-	perSec = 10.0 / OPT_R_DEF;
+	perSec = 10 / OPT_R_DEF;
 
 	cout << "gpioTick: ";
 
@@ -122,9 +120,9 @@ void Motors::gpioTick( Motors *myObj )
 	{
 		for ( int i = 0; i < g_num_gpios; i++)
 		{
-			printf(" gpio %1d count = %2d", g_gpio[i], (int)(perSec * (float)g_pulse_count[i]));
+			printf(" gpio %1d count = %2d", g_gpio[i], (perSec * g_pulse_count[i]) );
 
-			float rpm = (float)(2 * (int)(perSec * (float)g_pulse_count[i]) / POLES * 60);
+			int rpm = 2 * (perSec * g_pulse_count[i]) / POLES * 60;
 			cout << " rpm: " << rpm << ", ";
 		}
 
@@ -352,19 +350,6 @@ void Motors::forward( float Lspeed, float Rspeed )
 	targetSpeed_A_ = Lspeed;
 	targetSpeed_B_ = Rspeed;
 
-	// left
-	// if( currentSpeed_A_ < MIN_SPEED )
-	// {
-	// 	currentSpeed_A_ = MIN_SPEED;
-	// 	d2a_->set( 'a', MIN_SPEED );
-	// }
-
-	// // right
-	// if( currentSpeed_B_ < MIN_SPEED_R )
-	// {
-	// 	currentSpeed_B_ = MIN_SPEED_R;
-	// 	d2a_->set( 'b', MIN_SPEED_R );
-	// }
 }
 
 
