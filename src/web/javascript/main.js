@@ -74,27 +74,38 @@ setInterval(() => {
 			left: 0,
 			right: 0
 		};
-		// position.x = 0.000001 * joysticks[LEFT].posZB.x ** 4 + .001 * joysticks[LEFT].posZB.x ** 2;// + 14;
-		// position.y = 0.000001 * joysticks[LEFT].posZB.y ** 4 + .001 * joysticks[LEFT].posZB.y ** 2;// + 14;
+		
+		// customize the response curve for better human control using desmos.com
+		// x = .000001 * X^3 + 0.001 * X^2 (x=10 max)
+		// y = .000001 * Y^3
+		position.x = 0.0000009 * joysticks[LEFT].posZB.x ** 3; // ~0 to 0.9
+		position.y = 0.0001 * joysticks[LEFT].posZB.y ** 3;
 
-		position.x = 0.000001 * joysticks[LEFT].posZB.x ** 3 + 0.001 * joysticks[LEFT].posZB.x ** 2;
-		// position.y = 0.0002 * joysticks[LEFT].posZB.y ** 3 + 0.001 * joysticks[LEFT].posZB.y ** 2;
-		position.y = 0.0001 * joysticks[LEFT].posZB.y ** 3;// + 0.001 * joysticks[LEFT].posZB.y ** 2;
 
 		if( joysticks[LEFT].posZB.y !== 0 )
 		{
-			position.left = position.right = position.y + 10;
+			// load up the Y vector for both left and right (+10 for the DAC min offset)
+			position.left = position.right = position.y;// + 10;
+
 			if( joysticks[LEFT].posZB.x < 0 )
-				position.left = ( position.left > position.x ) ? ( position.left - position.x ) : 0;
+			{
+				// left side of the circle
+				position.x *= -1;
+				position.left = position.left *  (1 - position.x);
+			}
 			else
-				position.right = ( position.right > position.x ) ? ( position.right - position.x ) : 0;
+			{
+				// right side of the circle
+				position.right = position.right * (1 - position.x);
+			}
 		}
 
 		// myStr = "X: " + position.x + ", Y: " + position.y;
 		// let myStr = "X: " + joysticks[LEFT].posZB.x.toFixed(3) + ",X: " + position.x.toFixed(3);
 		// myStr += " Y: " + joysticks[LEFT].posZB.y.toFixed(3) + ",Y: " + position.y.toFixed(3);
 		
-		let myStr = "left: " + position.left.toFixed(3) + ", right: " + position.right.toFixed(3);
+		let myStr = "RAW: x: " + position.x.toFixed(3) + ", y: " + position.y.toFixed(3) + "\n"
+			+ "left: " + position.left.toFixed(3) + ", right: " + position.right.toFixed(3);
 		
 		console.log( myStr );
 
