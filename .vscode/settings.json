@@ -117,5 +117,7 @@
     "iomanip": "cpp",
     "sstream": "cpp",
     "chrono": "cpp"
-  }
+  },
+  "cmake.parallelJobs": 3,
+  "cmake.ctest.allowParallelJobs": true
 }
