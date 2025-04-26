@@ -25,15 +25,31 @@ socket.onerror = function(error) {
 };
 
 // Create a canvas element and get its 2D drawing context
-const canvas = document.createElement('canvas'), context = canvas.getContext('2d');
+const canvas = document.createElement('canvas');
+const context = canvas.getContext('2d');
 document.body.append(canvas);
 
 let width = canvas.width = innerWidth; // Set canvas width to window width
-let height = canvas.height = innerHeight; // Set canvas height to window height
+// let height = canvas.height = innerHeight; // Set canvas height to window height
+let height = canvas.height =500;
+canvas.style.position = 'absolute';
+canvas.style.top = "500px";
 
 const LEFT = 0;
 const RIGHT = 1;
 const FPS = 120; // Frames per second
+
+let newSpeed = 0;
+// when a radio button changes call updateSpeed()
+function updateSpeed( selSpeed )
+{
+	// DOM lookup is slow, so using JS passing instead
+	// newSpeed = parseFloat( document.querySelector( 'input[name = "speed"]:checked' ).value );
+
+	newSpeed = parseFloat( selSpeed.value );
+	// console.log( newSpeed );
+}
+
 
 // Function to clear the background
 function background() {
@@ -107,9 +123,23 @@ setInterval(() => {
 		let myStr = "RAW: x: " + position.x.toFixed(3) + ", y: " + position.y.toFixed(3) + "\n"
 			+ "left: " + position.left.toFixed(3) + ", right: " + position.right.toFixed(3);
 		
-		console.log( myStr );
+		// console.log( myStr );
 
-		// send the drive value to the motors
-		socket.send( JSON.stringify(position));
+		// if a radio button is selected that isn't 0, send that instead
+		if( newSpeed === 0 )
+		{
+			// send the drive value to the motors
+			socket.send( JSON.stringify(position));
+		}
+		else
+		{
+			// newSpeed is not 0, so send that instead
+			position.left = newSpeed;
+			position.right = newSpeed;
+			socket.send( JSON.stringify(position));
+		}
 	}
 }, 100 );
+
+
+
