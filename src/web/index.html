@@ -10,10 +10,40 @@
         canvas {
             display: block; /* Ensure the canvas fills the screen without scrollbar */
         }
+
+		input[type='radio'] { 
+     		transform: scale(4);
+			 margin: 2em 1.5em;
+ 		}
+
+		 label { 
+			font-size: 2.5em;
+		 }
     </style>
     <title>Joystick Application</title>
 </head>
 <body>
+	<div id="speed_input" >
+		<input type="radio" id="speed_1" name="speed" value="17" onclick="updateSpeed( this );">
+		<label for="speed_1">17%</label><br>
+		<input type="radio" id="speed_2" name="speed" value="20" onclick="updateSpeed( this );">
+		<label for="speed_2">20%</label><br>
+		<input type="radio" id="speed_3" name="speed" value="25" onclick="updateSpeed( this );">
+		<label for="speed_3">25%</label>
+		<div>
+			<br><br>
+		</div>
+		<input type="radio" id="speed_4" name="speed" value="0" onclick="updateSpeed( this );">
+		<label for="speed_4">0%</label>
+	</div>
+
+	<div style="position: absolute; top: 1em; left: 13em; font-size: 2.5em;">
+		Left Speed: <span id="right_speed_feedback">---</span>%
+	</div>
+	<div style="position: absolute; top: 1em; left: 13em; font-size: 2.5em;">
+		Right Speed: <span id="left_speed_feedback">---</span>%
+	</div>
+
     <!-- Link to the JavaScript files -->
     <script src="../javascript/vector.js"></script>
     <script src="../javascript/joystick.js"></script>
