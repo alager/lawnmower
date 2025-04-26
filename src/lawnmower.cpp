@@ -9,9 +9,12 @@ ondemand::parser parser;
 ondemand::document doc;
 std::atomic<bool> dataReady{false};
 double leftMotor, rightMotor;
+crow::SimpleApp app;
 
 int main() 
 {
+
+	cout << "Lawnmower Starting Up..." << endl;
 	// uint32_t buff = { 0xaabb1155 };
 	// Create a file stream object
 	// std::ofstream outfile("hello_world.txt");
@@ -24,6 +27,7 @@ int main()
 
 	// spawn a thread for the websocket
 	std::thread wsThread( spawnWebsocketThread );
+	// spawnWebsocketThread();
 
 	// Set up the signal handler
 	signal(SIGINT, sigINT_handler);
@@ -31,12 +35,6 @@ int main()
 	mtr->init();
 	cout << "post init" << endl;
 
-	// mtr->forward( 23.0f );
-	// sleep( 5 );
-
-	// mtr->forward( 28.0f );
-	// msleep( 3000 );	// sleep for milliseconds
-	// mtr->forward( 0.0f );
 	// msleep( 3000 );	// sleep for milliseconds
 	
 	// mtr->estop( );
@@ -46,10 +44,14 @@ int main()
 		// check if there is new data to read
 		if( dataReady.load() )
 		{
+			// debug output to the console
 			cout << "left: " << leftMotor << " ";
 			cout << "right: " << rightMotor << endl;
 			
-			mtr->forward( static_cast<float>(rightMotor) );
+			// update the motor object with the current motor speeds
+			mtr->forward( static_cast<float>( leftMotor ), static_cast<float>( rightMotor ) );
+
+			// mtr->forward( static_cast<float>( 10.0f ), static_cast<float>( 10.0f ) );
 
 			dataReady.store( false );
 		}
@@ -67,7 +69,7 @@ int main()
 void sigINT_handler( int signum )
 {
 	delete mtr;			// invoke destructor
-	std::terminate();
+	// app.stop();
 	exit( signum );		// exit program
 }
 
@@ -77,9 +79,10 @@ void msleep( uint16_t time )
 	std::this_thread::sleep_for(std::chrono::milliseconds( time ));
 }
 
+
 void spawnWebsocketThread( void )
 {
-	crow::SimpleApp app;
+	std::string speedData;
 
     CROW_ROUTE(app, "/")
         .websocket()
@@ -113,16 +116,24 @@ void spawnWebsocketThread( void )
 
 					if( !dataReady.load() )
 					{
-						// look for the 'x' object and get its value
+						// look for the left object and get its value
 						error = doc["left"].get(leftMotor);
 						if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
 
-						// look for the 'y' object and get its value
+						// look for the right object and get its value
 						error = doc["right"].get(rightMotor);
 						if (error) { std::cerr << simdjson::error_message(error) << std::endl; return false; }
 
 						// atomic shared variable to indicate data is ready
 						dataReady.store( true );
+
+						float left = mtr->getSpeed( LEFT );
+						float right = mtr->getSpeed( RIGHT );
+						
+						speedData = "{\"leftSpeed\":" + std::to_string(left) + ", \"rightSpeed\":" + std::to_string(right) + "}";
+						//simdjson::padded_string my_padded_data( speedData ); // copies to a padded buffer
+
+						conn.send_text( speedData );
 					}
 					else
 					{
@@ -135,7 +146,7 @@ void spawnWebsocketThread( void )
                 });
 
     app.port(40800)
-        //.multithreaded()
+        // .multithreaded()
         .run();
 	// end of the websocket thread
 }

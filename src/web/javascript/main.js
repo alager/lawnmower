@@ -7,8 +7,14 @@ socket.onopen = function(e) {
 };
 
 socket.onmessage = function(event) {
-  console.log(`[message] Data received from server: ${event.data}`);
+//   console.log(`[message] Data received from server: ${event.data}`);
+  speed = JSON.parse( event.data );
+  //console.log( "left:" + speed.leftSpeed + "  right:" + speed.rightSpeed );
+
+  updateSpedometer( speed );
 };
+
+
 
 socket.onclose = function(event) {
   if (event.wasClean) {
@@ -38,6 +44,9 @@ canvas.style.top = "500px";
 const LEFT = 0;
 const RIGHT = 1;
 const FPS = 120; // Frames per second
+
+const LSpeedId = document.getElementById( "left_speed_feedback" );
+const RSpeedId = document.getElementById( "right_speed_feedback" );
 
 let newSpeed = 0;
 // when a radio button changes call updateSpeed()
@@ -142,4 +151,10 @@ setInterval(() => {
 }, 100 );
 
 
+
+function updateSpedometer( speed )
+{
+	LSpeedId.innerHTML = speed.leftSpeed.toFixed(1);
+	RSpeedId.innerHTML = speed.rightSpeed.toFixed(1);
+};
 

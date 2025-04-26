@@ -40,11 +40,20 @@ using std::abs;
 #define MILLY_SECS_10		( 10 )
 #define MILLY_SECS_100		( 100 )
 
+#define LEFT				( 0 )
+#define RIGHT				( 1 )
+
 #pragma once
 class Motors
 {
 public:
 	
+	typedef struct {
+		float LSpeed;
+		float RSpeed;
+	} Speed;
+
+
 	// Constructor
 	Motors()
 	{
@@ -76,6 +85,12 @@ public:
 		// set the motor enable GPIO as an output
 		gpioSetMode( ENABLE_MOTOR_GPIO, PI_OUTPUT );
 
+		// turn the motor enables off
+		motorEnable( false );
+
+		std::this_thread::sleep_for(std::chrono::milliseconds( 100 ));
+
+		// turn the motor enables on
 		motorEnable( true );
 
 	}
@@ -93,11 +108,12 @@ public:
 
 	static void internalTick( const gpioSample_t *samples, int numSamples, void *myObj );
 
+
 	void init( void );
 	void forward( float Lspeed, float Rspeed );
 	void estop( void );
 	void motorEnable( bool enable );
-	// void beep( uint16_t time );
+	float getSpeed( int leftRight );
 
 
 private:

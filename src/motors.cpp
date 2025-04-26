@@ -11,8 +11,10 @@ static volatile int g_pulse_count[ MAX_GPIOS ];
 static volatile int g_update_counts = 1;
 
 // globals that allow the static callbacks to share data with the objects
-float targetSpeed_A_, targetSpeed_B_;
-float currentSpeed_A_, currentSpeed_B_;
+float targetSpeed_left_, targetSpeed_right_;
+float currentSpeed_left_, currentSpeed_right_;
+uint16_t LeftRPM_;
+uint16_t RightRPM_;
 
 // telemetry 
 float Vbatt;		// Input Voltage
@@ -62,7 +64,7 @@ void Motors::tickCallback( void *myObjV )
 	#endif
 }
 
-// This gpioTick() is called about every ~500ms
+// This speedTick() is called about every ~500ms
 // maintenance function to keep the motors going
 // at the specified speed.
 //  F=2*P/N*60
@@ -77,40 +79,40 @@ void Motors::tickCallback( void *myObjV )
 void Motors::speedTick( Motors *myObj )
 {
 	// update current speed towards target speed
-	if( currentSpeed_A_ != targetSpeed_A_ )
+	if( currentSpeed_left_ != targetSpeed_left_ )
 	{
-		float delta = targetSpeed_A_ - currentSpeed_A_;
+		float delta = targetSpeed_left_ - currentSpeed_left_;
 
 		if( abs( delta ) > 2.0f )
-			currentSpeed_A_ += delta / RAMP_RATE;
+			currentSpeed_left_ += delta / RAMP_RATE;
 		else
-			currentSpeed_A_ = targetSpeed_A_;
+			currentSpeed_left_ = targetSpeed_left_;
 
-		cout << "A CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
-		myObj->d2a_->set('a', currentSpeed_A_ );
+		cout << "A CSpeed: " << currentSpeed_left_ << ", TSpeed: " << targetSpeed_left_ << endl;
+		myObj->d2a_->set('a', currentSpeed_left_ );
 	}
 
-	if( currentSpeed_B_ != targetSpeed_B_ )
+	if( currentSpeed_right_ != targetSpeed_right_ )
 	{
-		float delta = targetSpeed_B_ - currentSpeed_B_;
+		float delta = targetSpeed_right_ - currentSpeed_right_;
 
 		if( abs( delta ) > 2.0f )
-			currentSpeed_B_ += delta / RAMP_RATE;
+			currentSpeed_right_ += delta / RAMP_RATE;
 		else
-			currentSpeed_B_ = targetSpeed_B_;
+			currentSpeed_right_ = targetSpeed_right_;
 
-		cout << "B CSpeed: " << currentSpeed_B_ << ", TSpeed: " << targetSpeed_B_ << endl;
-		myObj->d2a_->set('b', currentSpeed_B_ );
+		cout << "B CSpeed: " << currentSpeed_right_ << ", TSpeed: " << targetSpeed_right_ << endl;
+		myObj->d2a_->set('b', currentSpeed_right_ );
 	}
 }
 
 
 
 void Motors::gpioTick( Motors *myObj )
-{
+{	
 	int perSec;
 
-	( void ) myObj;
+	(void)myObj;
 
 	perSec = 10 / OPT_R_DEF;
 
@@ -118,18 +120,36 @@ void Motors::gpioTick( Motors *myObj )
 
 	if (!g_update_counts)
 	{
-		for ( int i = 0; i < g_num_gpios; i++)
-		{
-			printf(" gpio %1d count = %2d", g_gpio[i], (perSec * g_pulse_count[i]) );
+		// for ( int i = 0; i < g_num_gpios; i++)
+		// {
+		// 	printf(" gpio %1d count = %2d", g_gpio[i], (perSec * g_pulse_count[i]) );
 
-			int rpm = 2 * (perSec * g_pulse_count[i]) / POLES * 60;
-			cout << " rpm: " << rpm << ", ";
-		}
+		// 	uint16_t rpm = 2 * (perSec * g_pulse_count[i]) / POLES * 60;
+		// 	cout << " rpm: " << rpm << ", ";
+		// }
 
-		cout << endl;
+		printf(" gpio %1d count = %2d", g_gpio[ 0 ], (perSec * g_pulse_count[ 0 ]) );
+		printf(" gpio %1d count = %2d", g_gpio[ 1 ], (perSec * g_pulse_count[ 1 ]) );
+
+		LeftRPM_ = static_cast<uint16_t>(2 * (perSec * g_pulse_count[ 0 ]) / POLES * 60);
+		RightRPM_ = static_cast<uint16_t>(2 * (perSec * g_pulse_count[ 1 ]) / POLES * 60);
+
+		cout << "Left RPM: " << std::dec << LeftRPM_ << "	Right RPM: "<< std::dec << RightRPM_ << endl;
 		g_update_counts = 1;
 	}
-	cout << "CSpeed: " << currentSpeed_A_ << ", TSpeed: " << targetSpeed_A_ << endl;
+	cout << "CSpeed: " << currentSpeed_left_ << ", TSpeed: " << targetSpeed_left_ << endl;
+
+	if( LeftRPM_ < 1 )
+	{
+		targetSpeed_left_ += 0.1f;
+		cout << "left RPM low, adding 0.1" << endl;
+	}
+
+	if( RightRPM_ < 1 )
+	{
+		targetSpeed_right_ += 0.1f;
+		cout << "right RPM low, adding 0.1" << endl;
+	}
 }
 
 
@@ -145,6 +165,7 @@ void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *my
 	uint32_t high, level, tickDiff;
 	int i, g;
 
+	// cout << "INTERNAL_TICK" << endl;
 	
 	if (!inited)
 	{
@@ -324,6 +345,16 @@ void Motors::tickA2D( Motors *myObj )
 
 }
 
+float Motors::getSpeed( int leftRight )
+{
+	if( leftRight == LEFT )
+		return currentSpeed_left_;
+	else
+	if( leftRight == RIGHT )
+		return currentSpeed_right_;
+	else
+		return 0.0f;
+}
 
 // set the forward speed (0-100%)
 // minimum of 16% to get motor motion
@@ -347,8 +378,8 @@ void Motors::forward( float Lspeed, float Rspeed )
 	if( Rspeed < MIN_SPEED_R )
 		Rspeed = MIN_SPEED_R;
 
-	targetSpeed_A_ = Lspeed;
-	targetSpeed_B_ = Rspeed;
+	targetSpeed_left_ = Lspeed;
+	targetSpeed_right_ = Rspeed;
 
 }
 
