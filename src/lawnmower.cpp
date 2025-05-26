@@ -82,7 +82,7 @@ void msleep( uint16_t time )
 
 void spawnWebsocketThread( void )
 {
-	std::string speedData;
+	// crow::SimpleApp app;
 
     CROW_ROUTE(app, "/")
         .websocket()

@@ -165,7 +165,7 @@ void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *my
 	uint32_t high, level, tickDiff;
 	int i, g;
 
-	// cout << "INTERNAL_TICK" << endl;
+	cout << "INTERNAL_TICK" << endl;
 	
 	if (!inited)
 	{
