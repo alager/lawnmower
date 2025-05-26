@@ -103,3 +103,4 @@ class Joystick {
 		this.draw();
 	}
 }
+
