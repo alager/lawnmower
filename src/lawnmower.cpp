@@ -130,7 +130,7 @@ void spawnWebsocketThread( void )
 						float left = mtr->getSpeed( LEFT );
 						float right = mtr->getSpeed( RIGHT );
 						
-						speedData = "{\"leftSpeed\":" + std::to_string(left) + ", \"rightSpeed\":" + std::to_string(right) + "}";
+						std::string speedData = "{\"leftSpeed\":" + std::to_string(left) + ", \"rightSpeed\":" + std::to_string(right) + "}";
 						//simdjson::padded_string my_padded_data( speedData ); // copies to a padded buffer
 
 						conn.send_text( speedData );
