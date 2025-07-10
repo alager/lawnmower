@@ -17,11 +17,11 @@ uint16_t LeftRPM_;
 uint16_t RightRPM_;
 
 // telemetry 
-float Vbatt;		// Input Voltage
-float AmpTotal;		// Total
-float AmpMtrL; 		// Left
-float AmpMtrR; 		// Right
-float AmpMtrCtr;	// Cutter 
+volatile float Motors::Vbatt		= 0.0f;		// Input Voltage
+volatile float Motors::AmpTotal		= 0.0f;		// Total
+volatile float Motors::AmpMtrL		= 0.0f; 	// Left
+volatile float Motors::AmpMtrR		= 0.0f; 	// Right
+volatile float Motors::AmpMtrCtr	= 0.0f;		// Cutter 
 
 // #define ArraySz	( sizeof( VbattArry_ ) / sizeof( VbattArry_[ 0 ] ) )
 
@@ -74,8 +74,8 @@ void Motors::tickCallback( void *myObjV )
 // P = freq. in Hz
 #define POLES			( 8 )
 
-// larger number make longer ramp
-#define RAMP_RATE		( 4.0f )
+// larger number makes a longer ramp
+#define RAMP_RATE		( 2.5f )
 void Motors::speedTick( Motors *myObj )
 {
 	// update current speed towards target speed
@@ -116,39 +116,33 @@ void Motors::gpioTick( Motors *myObj )
 
 	perSec = 10 / OPT_R_DEF;
 
-	cout << "gpioTick: ";
+	//cout << "gpioTick: ";
 
 	if (!g_update_counts)
 	{
-		// for ( int i = 0; i < g_num_gpios; i++)
-		// {
-		// 	printf(" gpio %1d count = %2d", g_gpio[i], (perSec * g_pulse_count[i]) );
-
-		// 	uint16_t rpm = 2 * (perSec * g_pulse_count[i]) / POLES * 60;
-		// 	cout << " rpm: " << rpm << ", ";
-		// }
-
-		printf(" gpio %1d count = %2d", g_gpio[ 0 ], (perSec * g_pulse_count[ 0 ]) );
+		printf("gpio %1d count = %2d", g_gpio[ 0 ], (perSec * g_pulse_count[ 0 ]) );
 		printf(" gpio %1d count = %2d", g_gpio[ 1 ], (perSec * g_pulse_count[ 1 ]) );
 
 		LeftRPM_ = static_cast<uint16_t>(2 * (perSec * g_pulse_count[ 0 ]) / POLES * 60);
 		RightRPM_ = static_cast<uint16_t>(2 * (perSec * g_pulse_count[ 1 ]) / POLES * 60);
 
-		cout << "Left RPM: " << std::dec << LeftRPM_ << "	Right RPM: "<< std::dec << RightRPM_ << endl;
+		cout << "\nLeft RPM: " << std::dec << LeftRPM_ << "	Right RPM: "<< std::dec << RightRPM_ << endl;
 		g_update_counts = 1;
 	}
-	cout << "CSpeed: " << currentSpeed_left_ << ", TSpeed: " << targetSpeed_left_ << endl;
+	//cout << "CSpeed: " << currentSpeed_left_ << ", TSpeed: " << targetSpeed_left_ << endl;
 
+	// here we attempt to adjust the speed setting to get some RPM going
+	// but it just gets overriden when the next target speed comes in from the UI
 	if( LeftRPM_ < 1 )
 	{
-		targetSpeed_left_ += 0.1f;
-		cout << "left RPM low, adding 0.1" << endl;
+		targetSpeed_left_ += 1.0f;
+		cout << "left RPM low, adding 1" << endl;
 	}
 
 	if( RightRPM_ < 1 )
 	{
-		targetSpeed_right_ += 0.1f;
-		cout << "right RPM low, adding 0.1" << endl;
+		targetSpeed_right_ += 1.0f;
+		cout << "right RPM low, adding 1" << endl;
 	}
 }
 
@@ -165,7 +159,7 @@ void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *my
 	uint32_t high, level, tickDiff;
 	int i, g;
 
-	cout << "INTERNAL_TICK" << endl;
+	//cout << "INTERNAL_TICK" << endl;
 	
 	if (!inited)
 	{
@@ -181,6 +175,13 @@ void Motors::internalTick( const gpioSample_t *samples, int numSamples, void *my
 		{
 			count[i] = 0;
 		}
+
+		//configure pointers
+		// pVbatt = &Vbatt;
+		// pAmpTotal = &AmpTotal;
+		// pAmpMtrL = &AmpMtrL;
+		// pAmpMtrR = &AmpMtrR;
+		// pAmpMtrCtr = &AmpMtrCtr;
 	}
 
 	// this loop handles reading in the GPIO pulses in an efficient manner
@@ -253,7 +254,7 @@ void Motors::tickA2D( Motors *myObj )
 				first_TA = false;
 				AmpTotal = telem;
 			}
-			AmpTotal += ( telem - AmpTotal) / 8.0f;
+			AmpTotal = AmpTotal + ( telem - AmpTotal) / 8.0f;
 			#if DEBUG_CURRENT
 			 cout << "Total Current:		" << AmpTotal << endl;
 			#endif
@@ -272,7 +273,8 @@ void Motors::tickA2D( Motors *myObj )
 				first_LA = false;
 				AmpMtrL = telem;
 			}
-			AmpMtrL += ( telem - AmpMtrL) / 8.0f;
+			// std::atomic
+			AmpMtrL = AmpMtrL + ( telem - AmpMtrL) / 8.0f;
 			#if DEBUG_CURRENT
 			 cout << "Left Current:		" << AmpMtrL << endl;
 			#endif
@@ -291,7 +293,7 @@ void Motors::tickA2D( Motors *myObj )
 				first_RA = false;
 				AmpMtrR = telem;
 			}
-			AmpMtrR += ( telem - AmpMtrR) / 8.0f;
+			AmpMtrR = AmpMtrR + ( telem - AmpMtrR) / 8.0f;
 			#if DEBUG_CURRENT
 			 cout << "Right Current:		" << AmpMtrR << endl;
 			#endif
@@ -310,7 +312,7 @@ void Motors::tickA2D( Motors *myObj )
 				first_CA = false;
 				AmpMtrCtr = telem;
 			}
-			AmpMtrCtr += ( telem - AmpMtrCtr) / 8.0f;
+			AmpMtrCtr = AmpMtrCtr + ( telem - AmpMtrCtr) / 8.0f;
 
 			// cout << "Cutter Current:		" << AmpMtrCtr << endl;
 			break;
@@ -329,7 +331,7 @@ void Motors::tickA2D( Motors *myObj )
 				Vbatt = telem;					
 			}
 			
-			Vbatt += ( telem - Vbatt) / 8.0f;
+			Vbatt = Vbatt + ( telem - Vbatt) / 8.0f;
 			#if DEBUG_VOLTAGE
 			 cout << "DEBUG: VoltageAvg:		" << Vbatt << endl;
 			#endif
@@ -357,7 +359,7 @@ float Motors::getSpeed( int leftRight )
 }
 
 // set the forward speed (0-100%)
-// minimum of 16% to get motor motion
+// minimum of 16% (MIN_SPEED) to get motor motion
 void Motors::forward( float Lspeed, float Rspeed )
 {
 	// do range protections
@@ -378,8 +380,8 @@ void Motors::forward( float Lspeed, float Rspeed )
 	if( Rspeed < MIN_SPEED_R )
 		Rspeed = MIN_SPEED_R;
 
-	targetSpeed_left_ = Lspeed;
-	targetSpeed_right_ = Rspeed;
+	targetSpeed_left_ = Lspeed * 1.0f;
+	targetSpeed_right_ = Rspeed * 1.0f;
 
 }
 

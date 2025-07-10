@@ -24,9 +24,9 @@ using std::abs;
 
 #define INPUT_GLITCH_FLTR	( 1 )
 
-#define MIN_SPEED			( 16.0f )
+#define MIN_SPEED			( 18.0f )
 #define MIN_SPEED_R			( 18.0f )
-#define MIN_SPEED_L			( 16.0f )
+#define MIN_SPEED_L			( 18.0f )
 
 #define MAX_SPEED			( 100.0f )
 
@@ -53,6 +53,17 @@ public:
 		float RSpeed;
 	} Speed;
 
+	// float *pVbatt;			// Input Voltage
+	// float *pAmpTotal;		// Total
+	// float *pAmpMtrL; 		// Left
+	// float *pAmpMtrR; 		// Right
+	// float *pAmpMtrCtr;		// Cutter 
+
+	static volatile float Vbatt;		// Input Voltage
+	static volatile float AmpTotal;		// Total
+	static volatile float AmpMtrL; 		// Left
+	static volatile float AmpMtrR; 		// Right
+	static volatile float AmpMtrCtr;	// Cutter 
 
 	// Constructor
 	Motors()
@@ -101,12 +112,12 @@ public:
 		estop();
 	}
 
+	static void internalTick( const gpioSample_t *samples, int numSamples, void *myObj );
 	static void speedTick( Motors *myObj );
 	static void tickCallback( void *myObjV );
 	static void gpioTick( Motors *myObj );
 	static void tickA2D( Motors *myObj );
-
-	static void internalTick( const gpioSample_t *samples, int numSamples, void *myObj );
+	
 
 
 	void init( void );
