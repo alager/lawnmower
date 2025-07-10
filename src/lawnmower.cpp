@@ -45,8 +45,8 @@ int main()
 		if( dataReady.load() )
 		{
 			// debug output to the console
-			cout << "left: " << leftMotor << " ";
-			cout << "right: " << rightMotor << endl;
+			// cout << "left: " << leftMotor << " ";
+			// cout << "right: " << rightMotor << endl;
 			
 			// update the motor object with the current motor speeds
 			mtr->forward( static_cast<float>( leftMotor ), static_cast<float>( rightMotor ) );
@@ -132,8 +132,14 @@ void spawnWebsocketThread( void )
 						
 						std::string speedData = "{\"leftSpeed\":" + std::to_string(left) + ", \"rightSpeed\":" + std::to_string(right) + "}";
 						//simdjson::padded_string my_padded_data( speedData ); // copies to a padded buffer
-
-						conn.send_text( speedData );
+						std::string elecData = "{\"vbatt\":" + std::to_string( Motors::Vbatt ) 
+												+ ", \"ampTotal\":" + std::to_string( Motors::AmpTotal ) 
+												+ ", \"ampLeft\":" + std::to_string( Motors::AmpMtrL )
+												+ ", \"ampRight\":" + std::to_string( Motors::AmpMtrR )
+												+ "}";
+						
+						std::string telemData = "{\"telem\":" + speedData + "," + elecData + "}";
+						conn.send_text( telemData );
 					}
 					else
 					{
