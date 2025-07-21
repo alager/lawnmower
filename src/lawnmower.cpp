@@ -30,7 +30,7 @@ int main()
 	// spawnWebsocketThread();
 
 	// Set up the signal handler
-	signal(SIGINT, sigINT_handler);
+	// signal(SIGINT, sigINT_handler);
 
 	mtr->init();
 	cout << "post init" << endl;
@@ -66,12 +66,12 @@ int main()
 
 // turn off esential GPIO
 // void sigINT_handler( Motors *mtr, int signum )
-void sigINT_handler( int signum )
-{
-	delete mtr;			// invoke destructor
-	// app.stop();
-	exit( signum );		// exit program
-}
+// void sigINT_handler( int signum )
+// {
+// 	delete mtr;			// invoke destructor
+// 	// app.stop();
+// 	exit( signum );		// exit program
+// }
 
 
 void msleep( uint16_t time )
@@ -130,15 +130,15 @@ void spawnWebsocketThread( void )
 						float left = mtr->getSpeed( LEFT );
 						float right = mtr->getSpeed( RIGHT );
 						
-						std::string speedData = "{\"leftSpeed\":" + std::to_string(left) + ", \"rightSpeed\":" + std::to_string(right) + "}";
-						//simdjson::padded_string my_padded_data( speedData ); // copies to a padded buffer
-						std::string elecData = "{\"vbatt\":" + std::to_string( Motors::Vbatt ) 
+						std::string speedData = "\"speed\": {\"leftSpeed\":" + std::to_string(left) + ", \"rightSpeed\":" + std::to_string(right) + "}";
+
+						std::string elecData = "\"telem\": {\"vbatt\":" + std::to_string( Motors::Vbatt ) 
 												+ ", \"ampTotal\":" + std::to_string( Motors::AmpTotal ) 
 												+ ", \"ampLeft\":" + std::to_string( Motors::AmpMtrL )
 												+ ", \"ampRight\":" + std::to_string( Motors::AmpMtrR )
 												+ "}";
 						
-						std::string telemData = "{\"telem\":" + speedData + "," + elecData + "}";
+						std::string telemData = "{" + speedData + "," + elecData + "}";
 						conn.send_text( telemData );
 					}
 					else

@@ -8,10 +8,10 @@ socket.onopen = function(e) {
 
 socket.onmessage = function(event) {
 //   console.log(`[message] Data received from server: ${event.data}`);
-  speed = JSON.parse( event.data );
-  //console.log( "left:" + speed.leftSpeed + "  right:" + speed.rightSpeed );
+  data = JSON.parse( event.data );
 
-  updateSpedometer( speed );
+  updateSpedometer( data.speed );
+  updateTelem( data.telem );
 };
 
 
@@ -47,6 +47,12 @@ const FPS = 120; // Frames per second
 
 const LSpeedId = document.getElementById( "left_speed_feedback" );
 const RSpeedId = document.getElementById( "right_speed_feedback" );
+const voltage = document.getElementById( "vbatt" );
+const ampTotal = document.getElementById( "ampTotal" );
+const ampLeft = document.getElementById( "ampLeft" );
+const ampRight = document.getElementById( "ampRight" );
+
+
 
 let newSpeed = 0;
 // when a radio button changes call updateSpeed()
@@ -157,4 +163,12 @@ function updateSpedometer( speed )
 	LSpeedId.innerHTML = speed.leftSpeed.toFixed(1);
 	RSpeedId.innerHTML = speed.rightSpeed.toFixed(1);
 };
+
+function updateTelem( telem )
+{
+	voltage.innerHTML = telem.vbatt.toFixed(1);
+	ampTotal.innerHTML = telem.ampTotal.toFixed(3);
+	ampLeft.innerHTML = telem.ampLeft.toFixed(3);
+	ampRight.innerHTML = telem.ampRight.toFixed(3);
+}
 
