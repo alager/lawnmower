@@ -242,12 +242,19 @@ void Motors::tickA2D( Motors *myObj )
 	switch( myObj->telemIdx_ )
 	{
 		case TLM_TOTAL_AMPS:
+			// total amps comes in inverted due to hardware
+			// so invert it here
+			//telem *= -1.0f;
+			
 			// calibration
-			telem -= 450.0f + 32.0f; // offset correction ** estimated **
+			//telem += 450.0f - 32.0f; // offset correction ** estimated **
 
 			// circuit equation to get us back to voltage
 			// 55mV/A = 18.181818A/mV
-			telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
+			//telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
+
+			// 2.77mA/bit * (bits - 8192) = Amps
+			telem = -0.002774325f * ( telem - 8192.0f );
 
 			if( first_TA )
 			{
@@ -262,11 +269,15 @@ void Motors::tickA2D( Motors *myObj )
 
 		case TLM_LEFT_AMPS:
 			// calibration
-			telem -= 130.0f + 5.0f; // offset correction
+			telem += 75.0f; // offset correction
 
 			// circuit equation to get us back to voltage
 			// 55mV/A = 18.181818A/mV
-			telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
+			// telem * 5.12 / 2^14 - 2.5
+			//telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
+
+			// 2.77mA/bit * (bits - 8192) = Amps
+			telem = 0.002774325f * ( telem - 8192.0f );
 
 			if( first_LA )
 			{
@@ -282,11 +293,14 @@ void Motors::tickA2D( Motors *myObj )
 
 		case TLM_RIGHT_AMPS:
 			// calibration
-			telem -= 450.0f + 5.0f; // offset correction
+			 telem -= 238.5f; // offset correction
 
 			// circuit equation to get us back to voltage
 			// 55mV/A = 18.181818A/mV
-			telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
+			// telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
+
+			// 2.77mA/bit * (bits - 8192) = Amps
+			telem = 0.002774325f * ( telem - 8192.0f );
 
 			if( first_RA )
 			{
@@ -301,11 +315,14 @@ void Motors::tickA2D( Motors *myObj )
 
 		case TLM_CUTR_AMPS:
 			// calibration
-			telem -= 288.0f - 2.0f; // offset correction
+			// telem -= 288.0f - 2.0f; // offset correction
 
 			// circuit equation to get us back to voltage
 			// 55mV/A = 18.181818A/mV
-			telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
+			// telem = (( telem * ( 5.12f / static_cast<float>( pow( 2, 14 ) ) ) ) - 2.50f) * 18.181818f;
+
+			// 2.77mA/bit * (bits - 8192) = Amps
+			telem = 0.002774325f * ( telem - 8192.0f );
 
 			if( first_CA )
 			{
